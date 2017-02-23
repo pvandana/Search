@@ -1,0 +1,179 @@
+ERC Search
+
+aspx
+
+<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="WebForm1.aspx.cs" Inherits="WebApplication1.WebForm1" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+    <style type="text/css">
+        .style1
+        {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+    
+        <table class="style1">
+            <tr>
+                <td>
+                    search by:</td>
+                <td>
+                    <asp:DropDownList ID="DropDownList1" runat="server" AutoPostBack="True" 
+                        onselectedindexchanged="DropDownList1_SelectedIndexChanged">
+                        <asp:ListItem>Select</asp:ListItem>
+                        <asp:ListItem>EmployeId</asp:ListItem>
+                        <asp:ListItem>Name</asp:ListItem>
+                    </asp:DropDownList>
+                </td>
+            </tr>
+        </table>
+        <div id="empidSearch" runat="server">
+        <table>
+        <tr>
+        <th>Enter Empid</th>
+
+        <th>
+            <asp:TextBox ID="txtSearchEmpid" runat="server"></asp:TextBox>
+            <asp:RequiredFieldValidator ID="RequiredFieldValidator1" runat="server" 
+                ErrorMessage="Please Enter Employe Id" ForeColor="Red" 
+                ControlToValidate="txtSearchEmpid"></asp:RequiredFieldValidator>
+        </th>
+        </tr>
+        <tr>
+        <th>
+            <asp:Button ID="Button1" runat="server" Text="Search" onclick="Button1_Click" />
+        </th>
+         <th>
+        <asp:Button ID="Button2" runat="server" Text="Cancel" />
+        </th>
+        </tr>
+        </table>
+        </div>
+    <div id="enameSearch" runat="server">
+        <table>
+        <tr>
+        <th>Enter FirstName</th>
+
+        <th>
+            <asp:TextBox ID="txtLastName" runat="server"></asp:TextBox>
+        </th>
+         <th>First LastName</th>
+
+        <th>
+            <asp:TextBox ID="txtFirstName" runat="server"></asp:TextBox>
+        </th>
+        </tr>
+        <tr>
+        <th>
+            <asp:Button ID="Button3" runat="server" Text="Search" onclick="Button3_Click" />
+        </th>
+         <th>
+        <asp:Button ID="Button4" runat="server" Text="Cancel" />
+        </th>
+        </tr>
+        </table>
+        </div>
+    </div>
+    <asp:GridView ID="GridView1" runat="server">
+    </asp:GridView>
+    </form>
+</body>
+</html>
+
+
+aspx.cs 
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Data;
+using System.Data.SqlClient;
+using System.Configuration;
+
+namespace WebApplication1
+{
+    public partial class WebForm1 : System.Web.UI.Page
+    {
+        SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["sqlcon"].ToString());
+        //100
+        //employe
+        //wf
+        //100---wf
+        //web.config-->100
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            if (Page.IsPostBack==false)
+            {
+                empidSearch.Visible = false;
+                enameSearch.Visible = false;
+            }
+            
+        }
+
+        protected void DropDownList1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            //if (DropDownList1.SelectedItem.Text == "EmployeId")
+            //{
+            //    empidSearch.Visible = true;   
+            //}
+            //if (DropDownList1.SelectedItem.Text == "Name")
+            //{
+            //    enameSearch.Visible = true;
+            //}
+
+
+            switch (DropDownList1.SelectedItem.Text)
+            {
+                case "EmployeId":
+                    empidSearch.Visible = true;
+                    enameSearch.Visible = false;
+                    break;
+                case "Name":
+                    enameSearch.Visible = true;
+                    empidSearch.Visible = false;
+                    break;
+            }
+        }
+
+        protected void Button1_Click(object sender, EventArgs e)
+        {
+            SqlCommand cmd = new SqlCommand("GetdataByid", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            SqlParameter p1=new SqlParameter("@pempid",SqlDbType.Int);
+            p1.Value=txtSearchEmpid.Text;
+            cmd.Parameters.Add(p1);
+            SqlDataAdapter da=new SqlDataAdapter(cmd);
+            DataSet ds=new DataSet();
+            da.Fill(ds,"emp");
+            GridView1.DataSource=ds.Tables[0];
+            GridView1.DataBind();
+        }
+
+        protected void Button3_Click(object sender, EventArgs e)
+        {
+             SqlCommand cmd = new SqlCommand("GetdataByNames", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            SqlParameter p1 = new SqlParameter("@pFirstName", SqlDbType.VarChar);
+            p1.Value = txtLastName.Text;
+            cmd.Parameters.Add(p1);
+            p1 = new SqlParameter("@pLasttName", SqlDbType.VarChar);
+            p1.Value = txtFirstName.Text;
+            cmd.Parameters.Add(p1);
+            SqlDataAdapter da=new SqlDataAdapter(cmd);
+            DataSet ds=new DataSet();
+            da.Fill(ds,"emp");
+            GridView1.DataSource=ds.Tables[0];
+            GridView1.DataBind();
+        }
+    }
+}
