@@ -1,0 +1,37 @@
+create table display(TemplateType varchar(50),asOfDate datetime,acknowledgementDueDate datetime,status varchar(50),action varchar(50),
+id int,firstName varchar(50),lastName varchar(50))
+
+drop table display
+
+insert into display values('Enterprize','12/2/2017','10/2/2017','started','working',1,'kalyani','tirivedi')
+
+
+insert into display values('wholesale Banking','12/2/2017','10/2/2017','Progress','Half a way',1,'vandana','abcd')
+
+insert into display values('community banking','12/2/2017','10/2/2017','started','working',1,'jyothi','kathighar')
+
+insert into display values('PIP','12/2/2017','10/2/2017','planning stage','None',1,'hasitha','sai lakshmi')
+
+select TemplateType,asOfDate,acknowledgementDueDate,status,action from display where id=1
+
+select * from display
+
+create procedure GetdataByid
+@pempid int 
+as 
+begin
+select TemplateType,asOfDate,acknowledgementDueDate,status,action from display where id=@pempid
+end
+
+
+create procedure GetdataByNames
+@pFirstName varchar(50) ,@pLasttName varchar(50)
+as 
+begin
+select TemplateType,asOfDate,acknowledgementDueDate,status,action from display where firstName=@pFirstName and lastName=@pLasttName
+end
+
+GetdataByid 1
+
+
+GetdataByNames 'kalyani','tirivedi'
