@@ -1,0 +1,650 @@
+using System;
+using System.Configuration;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
+using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
+using Reimbursements.BusinessObjects;
+using Reimbursements.Utilities;
+
+//------------------------------------------------------------------------------
+//                                    TuitionRequestDA.cs
+//
+//      This class handles all requests for the Tuition Request DB Changes
+// 
+//------------------------------------------------------------------------------
+// 
+//                          Modification Control Log                           
+//                                                                             
+//    Date     By                 Description                                
+//  --------  ---  -------------------------------------------------------------
+//  06-17-14  JV   Initial creation of program                               
+// 
+//------------------------------------------------------------------------------
+
+namespace Reimbursements.DataAccess
+{
+	public class TuitionRequestDA
+	{
+		#region Member Variables
+
+        // Variables
+        private SqlDatabase _DB = null;
+
+        #endregion
+
+　
+        #region Constructors
+
+		public TuitionRequestDA()
+        {
+            // Initialize Variables
+            ErrMsg = string.Empty;
+
+            try
+            {
+                // Create an instance of the SQL Database class
+                _DB = new SqlDatabase(ConfigurationManager.ConnectionStrings["REIMB"].ToString());
+            }
+            catch (Exception err)
+            {
+                // Database Error
+                ErrMsg = string.Format("{0} - Connecting to Database Error - {1}",
+                                       GetType().FullName,
+                                       err.Message);
+
+                // Save the Error
+                CommonDA.SaveError(ErrMsg, err);
+            }
+        }
+
+        #endregion
+
+　
+        #region Enums
+
+        #endregion
+
+　
+        #region Properties
+
+        public string ErrMsg { get; set; }
+
+        #endregion
+
+　
+        #region Methods
+
+        /// <summary>
+        /// Gets the next unassigned Tuition Request 
+        /// </summary>
+        /// <param name="processor"></param>
+        /// <param name="requestTypeId"></param>
+        /// <param name="statusDate"></param>
+        /// <returns>RequestId</returns>
+        internal int GetNextTuitionRequest(string processor, int requestTypeId, DateTime? statusDate)
+        {
+            // Define Constants
+            const string sp = "dbo.Update_Tuition_Request_Assign_Processor";
+
+            int requestId = 0;
+
+            // Set Stored Procedure
+            DbCommand dbCommand = _DB.GetStoredProcCommand(sp);
+
+            try
+            {
+                // Set Input Parameters
+                _DB.AddInParameter(dbCommand, "Processor", DbType.String, processor);
+                _DB.AddInParameter(dbCommand, "Request_Type_Id", DbType.Int32, requestTypeId);
+                _DB.AddInParameter(dbCommand, "Mgr_Action_Date", DbType.DateTime, statusDate);
+                
+                // Set Output Parameters
+                _DB.AddOutParameter(dbCommand, "Request_Id", DbType.Int32, -1);
+
+                _DB.ExecuteNonQuery(dbCommand);
+
+                requestId = (int)_DB.GetParameterValue(dbCommand, "@Request_Id");
+            }
+            catch (InternalException err)
+            {
+                // Re-Throw the Internal Exception
+                throw;
+            }
+            catch (Exception err)
+            {
+                // Format the Parameters
+                string parms = CommonDA.FormatParmsSQL(dbCommand);
+
+                // Database Error
+                ErrMsg = string.Format("{0} - Get Next Tuition Request Error - Parameters = {1} - {2}",
+                                       GetType().FullName,
+                                       parms,
+                                       err.Message);
+
+                // Save the Error
+                CommonDA.SaveError(ErrMsg, err);
+            }
+
+            return requestId;
+        }
+
+        
+        /// <summary>
+		/// Get Transaction History Detail
+		/// </summary>
+		/// <param name="reqId"></param>
+        /// <param name="hasProcRole"></param>
+		/// <returns>TransactionHistoryDetailBO</returns>
+		internal TransactionHistoryDetailBO GetTuitionHistoryDetail(Int32 reqId, string hasProcRole)
+		{
+			// Define Constants
+			const string sp = "dbo.Get_Tuition_History_Detail";
+
+			// Define Variables
+			TransactionHistoryDetailBO thdBO = new TransactionHistoryDetailBO();
+
+			// Set Stored Procedure
+			DbCommand dbCommand = _DB.GetStoredProcCommand(sp);
+
+			try
+			{
+				// Set Input Parameters
+				_DB.AddInParameter(dbCommand, "Request_Id", DbType.Int32, reqId);
+                _DB.AddInParameter(dbCommand, "ProcessorRole", DbType.String, hasProcRole);
+
+				using (IDataReader dr = _DB.ExecuteReader(dbCommand))
+				{
+					// Process all the records
+					while (dr.Read())
+					{
+						// Save the History
+						thdBO.Save(dr);
+					}
+				}
+			}
+			catch (InternalException err)
+			{
+				// Re-Throw the Internal Exception
+				throw;
+			}
+			catch (Exception err)
+			{
+                // Format the Parameters
+                string parms = CommonDA.FormatParmsSQL(dbCommand);
+
+                // Database Error
+                ErrMsg = string.Format("{0} - Get Tuition History Detail By Request Id Error - Parameters = {1} - {2}",
+                                       GetType().FullName,
+                                       parms,
+                                       err.Message);
+
+				// Save the Error
+				CommonDA.SaveError(ErrMsg, err);
+			}
+
+			return thdBO;
+		}
+
+　
+		/// <summary>
+		/// Get Tuition Request by Request Id
+		/// </summary>
+		/// <param name="reqId"></param>
+		/// <returns>TuitionRequestsBO</returns>
+		internal TuitionRequestsBO GetTuitionRequest(Int32 reqId)
+		{
+			// Define Constants
+            const string sp = "dbo.Get_Tuition_Requests";
+
+			// Define Variables
+			TuitionRequestsBO trBO = new TuitionRequestsBO();
+
+			// Set Stored Procedure
+			DbCommand dbCommand = _DB.GetStoredProcCommand(sp);
+
+			try
+			{
+				// Set Input Parameters
+				_DB.AddInParameter(dbCommand, "Request_Id", DbType.Int32, reqId);
+
+				using (IDataReader dr = _DB.ExecuteReader(dbCommand))
+				{
+					// Process all the records
+					while (dr.Read())
+					{
+						// Save the Record
+						trBO.Save(dr);
+					}
+				}
+			}
+			catch (InternalException err)
+			{
+				// Re-Throw the Internal Exception
+				throw;
+			}
+			catch (Exception err)
+			{
+                // Format the Parameters
+                string parms = CommonDA.FormatParmsSQL(dbCommand);
+
+                // Database Error
+                ErrMsg = string.Format("{0} - Get Tuition Request By Request Id Error - Parameters = {1} - {2}",
+                                       GetType().FullName,
+                                       parms,
+                                       err.Message);
+
+				// Save the Error
+				CommonDA.SaveError(ErrMsg, err);
+			}
+
+			return trBO;
+		}
+
+　
+        /// <summary>
+        /// Gets the number of Tuition Requests for a Major
+        /// </summary>
+        /// <param name="majorId"></param>
+        /// <returns>RowCount</returns>
+        internal int GetTuitionRequestCountsByMajor(int majorId)
+        {
+            // Define Constants
+            const string sp = "dbo.Get_Tuition_Requests_Count_By_Major";
+
+            int rowCount = 0;
+
+            // Set Stored Procedure
+            DbCommand dbCommand = _DB.GetStoredProcCommand(sp);
+
+            try
+            {
+                // Set Input Parameters
+                _DB.AddInParameter(dbCommand, "Major_Id", DbType.Int32, majorId);
+
+                // Set Output Parameters
+                _DB.AddOutParameter(dbCommand, "Row_Count", DbType.Int32, 0);
+
+                _DB.ExecuteNonQuery(dbCommand);
+
+                rowCount = (int)_DB.GetParameterValue(dbCommand, "@Row_Count");
+            }
+            catch (InternalException err)
+            {
+                // Re-Throw the Internal Exception
+                throw;
+            }
+            catch (Exception err)
+            {
+                // Format the Parameters
+                string parms = CommonDA.FormatParmsSQL(dbCommand);
+
+                // Database Error
+                ErrMsg = string.Format("{0} - Get Tuition Request Count by Major Error - Parameters = {1} - {2}",
+                                       GetType().FullName,
+                                       parms,
+                                       err.Message);
+
+                // Save the Error
+                CommonDA.SaveError(ErrMsg, err);
+            }
+
+            return rowCount;
+        }
+
+        /// <summary>
+        /// Gets the number of Tuition Requests for a Degree
+        /// </summary>
+        /// <param name="majorId"></param>
+        /// <returns>RowCount</returns>
+        internal int GetTuitionRequestCountsByDegree(int degreeId)
+        {
+            // Define Constants
+            const string sp = "dbo.Get_Tuition_Requests_Count_By_Degree";
+
+            int rowCount = 0;
+
+            // Set Stored Procedure
+            DbCommand dbCommand = _DB.GetStoredProcCommand(sp);
+
+            try
+            {
+                // Set Input Parameters
+                _DB.AddInParameter(dbCommand, "Degree_Id", DbType.Int32, degreeId);
+
+                // Set Output Parameters
+                _DB.AddOutParameter(dbCommand, "Row_Count", DbType.Int32, 0);
+
+                _DB.ExecuteNonQuery(dbCommand);
+
+                rowCount = (int)_DB.GetParameterValue(dbCommand, "@Row_Count");
+            }
+            catch (InternalException err)
+            {
+                // Re-Throw the Internal Exception
+                throw;
+            }
+            catch (Exception err)
+            {
+                // Format the Parameters
+                string parms = CommonDA.FormatParmsSQL(dbCommand);
+
+                // Database Error
+                ErrMsg = string.Format("{0} - Get Tuition Request Count by Degree Error - Parameters = {1} - {2}",
+                                       GetType().FullName,
+                                       parms,
+                                       err.Message);
+
+                // Save the Error
+                CommonDA.SaveError(ErrMsg, err);
+            }
+
+            return rowCount;
+        }
+
+        /// <summary>
+        /// Gets the number of Tuition Requests for a School
+        /// </summary>
+        /// <param name="schoolId"></param>
+        /// <returns>RowCount</returns>
+        internal int GetTuitionRequestCountsBySchool(int schoolId)
+        {
+            // Define Constants
+            const string sp = "dbo.Get_Tuition_Requests_Count_By_School";
+
+            int rowCount = 0;
+
+            // Set Stored Procedure
+            DbCommand dbCommand = _DB.GetStoredProcCommand(sp);
+
+            try
+            {
+                // Set Input Parameters
+                _DB.AddInParameter(dbCommand, "School_Id", DbType.Int32, schoolId);
+
+                // Set Output Parameters
+                _DB.AddOutParameter(dbCommand, "Row_Count", DbType.Int32, 0);
+
+                _DB.ExecuteNonQuery(dbCommand);
+
+                rowCount = (int)_DB.GetParameterValue(dbCommand, "@Row_Count");
+            }
+            catch (InternalException err)
+            {
+                // Re-Throw the Internal Exception
+                throw;
+            }
+            catch (Exception err)
+            {
+                // Format the Parameters
+                string parms = CommonDA.FormatParmsSQL(dbCommand);
+
+                // Database Error
+                ErrMsg = string.Format("{0} - Get Tuition Request Count by School Error - Parameters = {1} - {2}",
+                                       GetType().FullName,
+                                       parms,
+                                       err.Message);
+
+                // Save the Error
+                CommonDA.SaveError(ErrMsg, err);
+            }
+
+            return rowCount;
+        }
+
+		/// <summary>
+		/// Insert Tuition Request 
+		/// </summary>
+		/// <param name="trBO"></param>
+		/// <returns>RequestId</returns>
+		internal Int32 InsertTuitionRequest(TuitionRequestsBO trBO)
+		{
+			// Define Constants
+			const string sp = "dbo.Insert_Tuition_Request";
+			Int32 _requestId = 0;
+
+			// Set Stored Procedure
+			DbCommand dbCommand = _DB.GetStoredProcCommand(sp);
+
+			try
+			{
+				// Set Input Parameters
+				_DB.AddInParameter(dbCommand, "Request_Id",        DbType.Int32, trBO.Request_Id);
+				_DB.AddInParameter(dbCommand, "EmplId",            DbType.String, trBO.EmplId);
+				_DB.AddInParameter(dbCommand, "School_Id",         DbType.String, trBO.School_Id);
+				_DB.AddInParameter(dbCommand, "School_Other",      DbType.String, trBO.School_Other);
+				_DB.AddInParameter(dbCommand, "Class_Type_Id",     DbType.Int32, trBO.Class_Type_Id);
+				_DB.AddInParameter(dbCommand, "Degree_Id",         DbType.Int32, trBO.Degree_Id);
+				_DB.AddInParameter(dbCommand, "Degree_Other",      DbType.String, trBO.Degree_Other);
+				_DB.AddInParameter(dbCommand, "Major_Id",          DbType.Int32, trBO.Major_Id);
+				_DB.AddInParameter(dbCommand, "Major_Other",       DbType.String, trBO.Major_Other);
+				_DB.AddInParameter(dbCommand, "Requested_Amount",  DbType.Decimal, trBO.Requested_Amount);
+				_DB.AddInParameter(dbCommand, "Approved_Amount",   DbType.Decimal, trBO.Approved_Amount);
+				_DB.AddInParameter(dbCommand, "Submitted_Date",	   DbType.DateTime, trBO.Submitted_Date);
+				_DB.AddInParameter(dbCommand, "Mgr_Action_Id",     DbType.Int32, trBO.Mgr_Action_Id);
+				_DB.AddInParameter(dbCommand, "Mgr_Action_Date",   DbType.DateTime, trBO.Mgr_Action_Date);
+				_DB.AddInParameter(dbCommand, "Proc_Action",       DbType.String, trBO.Proc_Action);
+				_DB.AddInParameter(dbCommand, "Proc_Action_Date",  DbType.DateTime, trBO.Proc_Action_Date);
+				_DB.AddInParameter(dbCommand, "QA_Action",         DbType.String, trBO.QA_Action);
+				_DB.AddInParameter(dbCommand, "QA_Action_Date",    DbType.DateTime, trBO.QA_Action_Date);
+                _DB.AddInParameter(dbCommand, "QA_Reason",         DbType.String, trBO.QA_Reason);
+                _DB.AddInParameter(dbCommand, "QA_Other_Reason", DbType.String, trBO.QA_Other_Reason);
+				_DB.AddInParameter(dbCommand, "Paid_Date",         DbType.DateTime, trBO.Paid_Date);
+                _DB.AddInParameter(dbCommand, "Request_Type",      DbType.String, trBO.Request_Type);
+                _DB.AddInParameter(dbCommand, "Status_Name",       DbType.String, trBO.Status_Name);
+				_DB.AddInParameter(dbCommand, "Processor",         DbType.String, trBO.Processor);
+				_DB.AddInParameter(dbCommand, "Notes",             DbType.String, trBO.Notes);
+				_DB.AddInParameter(dbCommand, "QR_Notes",          DbType.String, trBO.QR_Notes);
+				_DB.AddInParameter(dbCommand, "Modified_By",       DbType.String, trBO.Modified_By);
+
+				_DB.AddOutParameter(dbCommand, "Id", DbType.Int32, 0);
+				_DB.ExecuteNonQuery(dbCommand);
+
+				// 0 means it is a new request, so get the new request # from the Output parm
+				if (trBO.Request_Id == 0)
+				{
+					_requestId = Convert.ToInt32(_DB.GetParameterValue(dbCommand, "@Id"));
+					trBO.Request_Id = _requestId;
+				}
+
+			}
+			catch (InternalException err)
+			{
+				// Re-Throw the Internal Exception
+				throw;
+			}
+			catch (Exception err)
+			{
+                // Format the Parameters
+                string parms = CommonDA.FormatParmsSQL(dbCommand);
+
+                // Database Error
+                ErrMsg = string.Format("{0} - Insert Tuition Request Error - Parameters = {1} - {2}",
+                                       GetType().FullName,
+                                       parms,
+                                       err.Message);
+
+				// Save the Error
+				CommonDA.SaveError(ErrMsg, err);
+			}
+
+			return _requestId;
+		}
+
+　
+		/// <summary>
+		/// Update Tuition Request 
+		/// </summary>
+		/// <param name="trBO"></param>
+		/// <returns>RequestId</returns>
+		internal Int32 UpdateTuitionRequest(TuitionRequestsBO trBO)
+		{
+			// Define Constants
+			const string sp = "dbo.Update_Tuition_Request";
+			Int32 _requestId = 0;
+
+			// Set Stored Procedure
+			DbCommand dbCommand = _DB.GetStoredProcCommand(sp);
+
+			try
+			{
+				// Set Input Parameters
+				_DB.AddInParameter(dbCommand, "Request_Id", DbType.Int32, trBO.Request_Id);
+				_DB.AddInParameter(dbCommand, "EmplId", DbType.String, trBO.EmplId);
+				_DB.AddInParameter(dbCommand, "School_Id", DbType.String, trBO.School_Id);
+				_DB.AddInParameter(dbCommand, "School_Other", DbType.String, trBO.School_Other);
+				_DB.AddInParameter(dbCommand, "Class_Type_Id", DbType.Int32, trBO.Class_Type_Id);
+				_DB.AddInParameter(dbCommand, "Degree_Id", DbType.Int32, trBO.Degree_Id);
+				_DB.AddInParameter(dbCommand, "Degree_Other", DbType.String, trBO.Degree_Other);
+				_DB.AddInParameter(dbCommand, "Major_Id", DbType.Int32, trBO.Major_Id);
+				_DB.AddInParameter(dbCommand, "Major_Other", DbType.String, trBO.Major_Other);
+				_DB.AddInParameter(dbCommand, "Requested_Amount", DbType.Decimal, trBO.Requested_Amount);
+                _DB.AddInParameter(dbCommand, "Request_Type", DbType.String, trBO.Request_Type);
+                _DB.AddInParameter(dbCommand, "Status_Name", DbType.String, trBO.Status_Name);
+				_DB.AddInParameter(dbCommand, "Modified_By", DbType.String, trBO.Modified_By);
+
+				_DB.ExecuteNonQuery(dbCommand);
+
+				_requestId = Convert.ToInt32(trBO.Request_Id);
+			}
+			catch (InternalException err)
+			{
+				// Re-Throw the Internal Exception
+				throw;
+			}
+			catch (Exception err)
+			{
+                // Format the Parameters
+                string parms = CommonDA.FormatParmsSQL(dbCommand);
+
+                // Database Error
+                ErrMsg = string.Format("{0} - Update Tuition Request Error - Parameters = {1} - {2}",
+                                       GetType().FullName,
+                                       parms,
+                                       err.Message);
+
+				// Save the Error
+				CommonDA.SaveError(ErrMsg, err);
+			}
+
+			return _requestId;
+		}
+
+　
+        /// <summary>
+        /// Update Tuition Request Status 
+        /// </summary>
+        /// <param name="trBO"></param>
+        internal void UpdateTuitionRequestStatus(TuitionRequestsBO trBO)
+        {
+            // Define Constants
+            const string sp = "dbo.Update_Tuition_Request_Status";
+
+            // Set Stored Procedure
+            DbCommand dbCommand = _DB.GetStoredProcCommand(sp);
+
+            try
+            {
+                // Set Input Parameters
+                _DB.AddInParameter(dbCommand, "Request_Id", DbType.Int32, trBO.Request_Id);
+                _DB.AddInParameter(dbCommand, "Request_Type", DbType.String, trBO.Request_Type);
+                _DB.AddInParameter(dbCommand, "Approved_Amount", DbType.Decimal, trBO.Approved_Amount);
+                _DB.AddInParameter(dbCommand, "Mgr_Action_Id", DbType.Int32, trBO.Mgr_Action_Id);
+                _DB.AddInParameter(dbCommand, "Mgr_Action_Date", DbType.DateTime, trBO.Mgr_Action_Date);
+                _DB.AddInParameter(dbCommand, "Proc_Action", DbType.String, trBO.Proc_Action);
+                _DB.AddInParameter(dbCommand, "Proc_Action_Date", DbType.DateTime, trBO.Proc_Action_Date);
+                _DB.AddInParameter(dbCommand, "Processor", DbType.String, trBO.Processor);
+                _DB.AddInParameter(dbCommand, "QA_Action", DbType.String, trBO.QA_Action);
+                _DB.AddInParameter(dbCommand, "QA_Action_Date", DbType.DateTime, trBO.QA_Action_Date);
+                _DB.AddInParameter(dbCommand, "QA_Reason", DbType.String, trBO.QA_Reason);
+                _DB.AddInParameter(dbCommand, "QA_Other_Reason", DbType.String, trBO.QA_Other_Reason);
+                _DB.AddInParameter(dbCommand, "Paid_Date", DbType.DateTime, trBO.Paid_Date);
+                _DB.AddInParameter(dbCommand, "Pay_Extracted", DbType.String, trBO.Pay_Extracted);
+                _DB.AddInParameter(dbCommand, "Status_Name", DbType.String, trBO.Status_Name);
+                _DB.AddInParameter(dbCommand, "Notes", DbType.String, trBO.Notes);
+                _DB.AddInParameter(dbCommand, "QR_Notes", DbType.String, trBO.QR_Notes);
+                _DB.AddInParameter(dbCommand, "Modified_By", DbType.String, trBO.Modified_By);
+
+                _DB.ExecuteNonQuery(dbCommand);
+            }
+            catch (InternalException err)
+            {
+                // Re-Throw the Internal Exception
+                throw;
+            }
+            catch (Exception err)
+            {
+                // Format the Parameters
+                string parms = CommonDA.FormatParmsSQL(dbCommand);
+
+                // Database Error
+                ErrMsg = string.Format("{0} - Update Tuition Request Status Error - Parameters = {1} - {2}",
+                                       GetType().FullName,
+                                       parms,
+                                       err.Message);
+
+                // Save the Error
+                CommonDA.SaveError(ErrMsg, err);
+            }
+        }
+
+        /// <summary>
+        /// Update the Tuition Request after the Manager approves. Sets the correct status (determined in stored procedure
+        ///  and sets the Manager Approval Date to the current date time.
+        /// </summary>
+        /// <param name="requestID">Tuition Request ID</param>
+        /// <param name="emplid">Manager Emplid</param>  Not currently used by the SP. Included to anticipate design
+        /// 
+        /// <returns>RecordsAffected int</returns>
+        /// 
+        internal int SetManagerApproval(Int32 requestID, string mgrEmplid, string actionId, string statusName)
+        {
+            // Define Constants
+            const string sp = "dbo.Update_Mgr_Action";
+
+            // Define Variables
+            Int32 approvalDenial = Convert.ToInt32(actionId);
+            Int32 recordsAffected = 0;
+
+            // Set Stored Procedure
+            DbCommand dbCommand = _DB.GetStoredProcCommand(sp);
+
+            try
+            {
+                // Set Input Parameters
+                _DB.AddInParameter(dbCommand, "Request_ID", DbType.Int32, requestID);
+                _DB.AddInParameter(dbCommand, "Mgr_Action_ID", DbType.Int32, approvalDenial);
+                _DB.AddInParameter(dbCommand, "Mgr_Emplid", DbType.String, mgrEmplid);
+                _DB.AddInParameter(dbCommand, "Status_Name", DbType.String, statusName);
+                _DB.AddOutParameter(dbCommand, "Records_Affected", DbType.Int32, recordsAffected);
+
+                _DB.ExecuteNonQuery(dbCommand);
+
+                recordsAffected = (int)_DB.GetParameterValue(dbCommand, "@Records_Affected");
+            }
+            catch (InternalException err)
+            {
+                // Re-Throw the Internal Exception
+                throw;
+            }
+            catch (Exception err)
+            {
+                // Format the Parameters
+                string parms = CommonDA.FormatParmsSQL(dbCommand);
+
+                // Database Error
+                ErrMsg = string.Format("{0} - Get TM Available Balance Data Error - Parameters = {1} - {2}",
+                                       GetType().FullName,
+                                       parms,
+                                       err.Message);
+
+                // Save the Error
+                CommonDA.SaveError(ErrMsg, err);
+            }
+
+            return recordsAffected;
+        }
+
+        #endregion
+    }
+}
