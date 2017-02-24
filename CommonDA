@@ -1,0 +1,235 @@
+using System;
+using System.Data;
+using System.Data.Common;
+using Reimbursements.Utilities;
+using Microsoft.Practices.EnterpriseLibrary.Data;
+using Oracle.DataAccess.Client;
+
+//------------------------------------------------------------------------------
+//                                    CommonDA.cs
+//
+//      This class handles the Common Data Access Functions and Methods
+// 
+//------------------------------------------------------------------------------
+// 
+//                          Modification Control Log                           
+//                                                                             
+//    Date     By                 Description                                
+//  --------  ---  -------------------------------------------------------------
+//  01-14-14  JV   Initial creation of program                               
+// 
+//------------------------------------------------------------------------------
+
+namespace Reimbursements.DataAccess
+{
+    public static class CommonDA
+    {
+        #region Member Variables
+
+        #endregion
+
+　
+        #region Constructors
+
+        #endregion
+
+　
+        #region Enums
+
+        #endregion
+
+　
+        #region Properties
+
+        #endregion
+
+　
+        #region Methods
+
+        /// <summary>
+        /// Executes the Function in the Database
+        /// </summary>
+        /// <param name="db">Database</param>
+        /// <param name="cmd">Oracle Command</param>
+        /// <param name="sp">Function</param>
+        /// <returns>DataTable</returns>
+        internal static DataTable ExecuteFunction(Database db, OracleCommand cmd, string sp)
+        {
+            DataTable dt = new DataTable();
+
+            try
+            {
+                // Call the Stored Procedure
+                DataSet ds = db.ExecuteDataSet(cmd);
+                dt = ds.Tables[0];
+            }
+            catch (Exception err)
+            {
+                // Format the Parameters
+                string parms = FormatParms(cmd);
+
+                // Database Error
+                string errMsg = string.Format("Reimbursements.DataAccess.CommonDA - Execute Function Error - Func = {0} - Parameters = {1} - {2}",
+                                              sp,
+                                              parms,
+                                              err.Message);
+
+                // Save the Error
+                SaveError(errMsg, err);
+            }
+
+            return dt;
+        }
+
+　
+        /// <summary>
+        /// Executes the Stored Procedure in the Database
+        /// </summary>
+        /// <param name="db">Database</param>
+        /// <param name="cmd">Oracle Command</param>
+        /// <param name="sp">Stored Procedure</param>
+        internal static void ExecuteStoredProcedure(Database db, OracleCommand cmd, string sp)
+        {
+            try
+            {
+                // Call the Stored Procedure
+                db.ExecuteDataSet(cmd);
+            }
+            catch (Exception err)
+            {
+                // Format the Parameters
+                string parms = FormatParms(cmd);
+
+                // Database Error
+                string errMsg = string.Format("Reimbursements.DataAccess.CommonDA - Execute Stored Procedure Error - SP = {0} - Parameters = {1} - {2}",
+                                              sp,
+                                              parms,
+                                              err.Message);
+
+                // Save the Error
+                SaveError(errMsg, err);
+            }
+        }
+
+　
+        /// <summary>
+        /// Executes the Stored Procedure in the Database
+        /// </summary>
+        /// <param name="db">Database</param>
+        /// <param name="cmd">Oracle Command</param>
+        /// <param name="sp">Stored Procedure</param>
+        /// <returns>DataSet</returns>
+        internal static DataSet ExecuteStoredProcedureDS(Database db, OracleCommand cmd, string sp)
+        {
+            DataSet ds = new DataSet();
+
+            try
+            {
+                // Call the Stored Procedure
+                ds = db.ExecuteDataSet(cmd);
+            }
+            catch (Exception err)
+            {
+                // Format the Parameters
+                string parms = FormatParms(cmd);
+
+                // Database Error
+                string errMsg = string.Format("Reimbursements.DataAccess.CommonDA - Execute ExecuteStoredProcedureDS Error - SP = {0} - Parameters = {1} - {2}",
+                                              sp,
+                                              parms,
+                                              err.Message);
+
+                // Save the Error
+                SaveError(errMsg, err);
+            }
+
+            return ds;
+        }
+
+　
+        /// <summary>
+        /// Format the Parameters to be displayed in the Error Message
+        /// </summary>
+        /// <param name="cmd">Oracle Command</param>
+        /// <returns>Formatted Parameters</returns>
+        internal static string FormatParms(OracleCommand cmd)
+        {
+            string parms = string.Empty;
+
+            foreach (DbParameter parm in cmd.Parameters)
+            {
+                // 1st Time?
+                if (parms.Length == 0)
+                {
+                    // Format 1st parameter
+                    parms = string.Format("{0}: {1}",
+                                          parm.ParameterName,
+                                          parm.Value);
+                }
+                else
+                {
+                    // Include previously formatted paramters
+                    parms = string.Format("{0}, {1}: {2}",
+                                          parms,
+                                          parm.ParameterName,
+                                          parm.Value);
+                }
+            }
+
+            return parms;
+        }
+
+　
+        /// <summary>
+        /// Format the Parameters to be displayed in the Error Message - SQL Server
+        /// </summary>
+        /// <param name="cmd">DB Command</param>
+        /// <returns>Formatted Parameters</returns>
+        internal static string FormatParmsSQL(DbCommand cmd)
+        {
+            string parms = string.Empty;
+
+            foreach (DbParameter parm in cmd.Parameters)
+            {
+                // 1st Time?
+                if (parms.Length == 0)
+                {
+                    // Format 1st parameter
+                    parms = string.Format("{0}: {1}",
+                                          parm.ParameterName,
+                                          parm.Value);
+                }
+                else
+                {
+                    // Include previously formatted paramters
+                    parms = string.Format("{0}, {1}: {2}",
+                                          parms,
+                                          parm.ParameterName,
+                                          parm.Value);
+                }
+            }
+
+            return parms;
+        }
+
+　
+        /// <summary>
+        /// Saves the Error Message
+        /// </summary>
+        /// <param name="errMsg">Error Message</param>
+        /// <param name="exc">Exception</param>
+        internal static void SaveError(string errMsg, Exception exc)
+        {
+            // Log the Error 
+            AppLogWrapper.LogError(errMsg);
+
+            // Return a User Friendly Error Message
+            string userFriendlyMsg = "There was a problem working with the database.  If the problem persists, please contact Technical Support.";
+
+            // Throw an Internal Exception
+            throw new InternalException(errMsg, userFriendlyMsg, exc);
+        }
+
+        #endregion
+    }
+}
