@@ -1,0 +1,129 @@
+using System;
+using System.Configuration;
+using System.Data;
+using System.Data.Common;
+using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
+using Reimbursements.Utilities;
+
+//------------------------------------------------------------------------------
+//                                    TMAvailableBalanceDA.cs
+//
+//      This class handles the Data Access to provide data to the Business Object
+//             to determine the TM available balance for Tuition
+// 
+//------------------------------------------------------------------------------
+// 
+//                          Modification Control Log                           
+//                                                                             
+//    Date     By                 Description                                
+//  --------  ---  -------------------------------------------------------------
+//  06-23-14  DVP   Initial creation of program                               
+// 
+//------------------------------------------------------------------------------
+
+namespace Reimbursements.DataAccess
+{
+    public class TMAvailableBalanceDA
+    {
+         #region Member Variables
+
+        // Variables
+		private SqlDatabase _DB = null;
+
+        #endregion
+
+　
+        #region Constructors
+
+        public TMAvailableBalanceDA()
+        {
+            // Initialize Variables
+            ErrMsg = string.Empty;
+
+            try
+            {
+				// Create an instance of the SQL Database class
+				_DB = new SqlDatabase(ConfigurationManager.ConnectionStrings["REIMB"].ToString());
+            }
+            catch (Exception err)
+            {
+                // Database Error
+                ErrMsg = string.Format("{0} - Connecting to SQL Database Error - {1}",
+                                       GetType().FullName,
+                                       err.Message);
+
+                // Save the Error
+                CommonDA.SaveError(ErrMsg, err);
+            }
+        }
+
+        #endregion
+
+　
+        #region Enums
+
+        #endregion
+
+　
+        #region Properties
+
+        public string ErrMsg { get; set; }
+
+        #endregion
+
+　
+        #region Methods
+
+        /// <summary>
+        /// Gets the Full/PartTime, Max amounts, Sum Paid up to effective date for an Employee
+        /// </summary>
+        /// <param name="emplId">TM Employee Id</param>
+        /// <param name="effectivedate">Date to be used</param>
+        /// <returns>TMBalance DataTable</returns>
+        public DataTable GetBal(string emplId, DateTime? effectivedate)
+        {
+			// Define Constants
+			const string sp = "dbo.Get_TM_Balance";
+
+			// Define Variables
+			DataSet ds = new DataSet();
+			DataTable dtTMBal = new DataTable();
+
+            // Set Stored Procedure
+            DbCommand dbCommand = _DB.GetStoredProcCommand(sp);
+
+            try
+			{
+				// Set Input Parameters
+				_DB.AddInParameter(dbCommand, "EmplId", DbType.String, emplId);
+                _DB.AddInParameter(dbCommand, "EffectiveDate", DbType.DateTime, effectivedate);
+
+				ds = _DB.ExecuteDataSet(dbCommand);
+				dtTMBal = ds.Tables[0];
+			}
+            catch (InternalException err)
+            {
+                // Re-Throw the Internal Exception
+                throw;
+            }
+            catch (Exception err)
+            {
+                // Format the Parameters
+                string parms = CommonDA.FormatParmsSQL(dbCommand);
+
+                // Database Error
+                ErrMsg = string.Format("{0} - Get TM Available Balance Data Error - Parameters = {1} - {2}",
+                                       GetType().FullName,
+                                       parms,
+                                       err.Message);
+
+                // Save the Error
+                CommonDA.SaveError(ErrMsg, err);
+            }
+
+			return dtTMBal;
+        }
+
+        #endregion
+    }
+}
