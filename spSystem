@@ -1,0 +1,57 @@
+USE [Reimbursements]
+GO
+/****** Object:  StoredProcedure [dbo].[Get_TM_System_Elig_Checks]    Script Date: 2/24/2017 7:12:36 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- ===============================================================
+-- Author:		Jim Vesco
+-- Create date: 1/9/15
+-- Change date: 2/25/15 DVP Replaced Hire_Date with Orig_Hire_Date
+-- Description:	Retrieves data to determine the Team Member's 
+--               system eligibility checks.
+-- ===============================================================
+ALTER PROCEDURE [dbo].[Get_TM_System_Elig_Checks] 
+	-- Add the parameters for the stored procedure here
+	@EmplId char(11) = Null,
+	@AsOfDate DateTime = Null
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Retrieves the Data
+	 Select r.EmplId, j.Empl_Status, r.HR_Status, r.Per_Status, j.Full_Part_Time, 
+			r.FLSA_Status, j.Action, j.Action_Reason, r.Orig_Hire_Date, r.Email_Id,
+			r.Mgr_Email_Id, r.Mgr_EmplId, 
+			Case
+			  When r.Per_Status = 'EMP' 
+			   And j.Empl_Status In ('L', 'P') 
+			   And j.Action = 'LOA' 
+			   And j.Action_Reason In (Select Action_Reason 
+			 							 From LOA_Reason_Codes 
+										Where j.Action = Action) 
+				Then 'Pass'
+			  When r.Per_Status = 'EMP' 
+			   And j.Empl_Status = 'A' 
+				Then 'Pass'
+			 Else 
+			   'Fail'
+			End As LOA_Status
+	  From HRPrdSS.dbo.HR_Full_Roster r 
+			 Left Join (Select EmplId, Empl_Status, Action, Action_Reason, Full_Part_Time
+						  From HRPrdSS.dbo.PS_Job j1
+						 Where EffDt = (Select Max(J2.EFFDT) 
+										  From HRPrdSS.dbo.PS_Job j2
+										 Where j2.EmplId = J1.EmplId 
+										   And j2.EffDt <= @AsOfDate)
+						   And EffSeq = (Select Max(J3.EffSeq) 
+										   From HRPrdSS.dbo.PS_Job j3
+										  Where j3.EmplId = j1.EmplId 
+											And j3.EffDt = j1.EffDt)) j
+					On j.EmplId = r.EmplId
+	 Where r.EmplId = @EmplId
+
+END
