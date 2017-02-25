@@ -1,0 +1,123 @@
+using System;
+using System.Data;
+
+//------------------------------------------------------------------------------
+//                    SystemEligibilityChecksBO.cs
+//
+//      This is the System Eligibility Checks Business Object.
+// 
+//------------------------------------------------------------------------------
+// 
+//                          Modification Control Log                           
+//                                                                             
+//    Date     By                 Description                                
+//  --------  ---  -------------------------------------------------------------
+//  01-9-15   JV   Initial creation of program                               
+// 
+//------------------------------------------------------------------------------
+
+namespace Reimbursements.BusinessObjects
+{
+	public class SystemEligibilityChecksBO
+	{
+		 #region Member Variables
+
+        #endregion
+
+　
+        #region Constructors
+
+		public SystemEligibilityChecksBO()
+        {
+            // Initialize Properties
+			EmplId = string.Empty;
+			Empl_Status = ' ';
+			HR_Status = ' '; 
+			Per_Status = string.Empty;
+			Full_Part_Time = ' ';
+			FLSA_Status = ' ';
+			Action = string.Empty;
+			Action_Reason = string.Empty;
+			Orig_Hire_Date = null;
+            Email_Id = string.Empty;
+            Mgr_Email_Id = string.Empty;
+			Mgr_EmplId = string.Empty;
+            LOA_Status = string.Empty;
+        }
+
+        #endregion
+
+　
+        #region Enums
+
+        #endregion
+
+　
+        #region Properties
+
+		public string EmplId { get; set; }
+		public char Empl_Status { get; set; }
+		public char HR_Status { get; set; }
+		public string Per_Status { get; set; }
+		public char Full_Part_Time { get; set; }
+		public char FLSA_Status { get; set; }
+		public string Action { get; set; }
+		public string Action_Reason { get; set; }
+        public DateTime? Orig_Hire_Date { get; set; }
+        public string Email_Id { get; set; }
+        public string Mgr_Email_Id { get; set; }
+		public string Mgr_EmplId { get; set; }
+        public string LOA_Status { get; set; }
+
+        #endregion
+
+　
+        #region Methods
+
+        /// <summary>
+        /// Saves the BO
+        /// </summary>
+        /// <param name="dr"></param>
+        internal void Save(IDataReader dr)
+        {
+			EmplId = dr["EmplId"].ToString();
+
+			if (dr["Empl_Status"] != DBNull.Value)
+			{
+				Empl_Status = Convert.ToChar(dr["Empl_Status"]);
+			}
+
+			if (dr["HR_Status"] != DBNull.Value)
+			{
+				HR_Status = Convert.ToChar(dr["HR_Status"]);
+			}
+
+			Per_Status = dr["Per_Status"].ToString();
+
+			if (dr["Full_Part_Time"] != DBNull.Value)
+			{
+				Full_Part_Time = Convert.ToChar(dr["Full_Part_Time"]);
+			}
+
+			if (dr["FLSA_Status"] != DBNull.Value)
+			{
+				FLSA_Status = Convert.ToChar(dr["FLSA_Status"]);
+			}
+
+			Action = dr["Action"].ToString();
+			Action_Reason = dr["Action_Reason"].ToString();
+
+			if (dr["Orig_Hire_Date"] != DBNull.Value)
+            {
+				Orig_Hire_Date = (DateTime)dr["Orig_Hire_Date"];
+            }
+            Email_Id = dr["Email_Id"].ToString();
+            Mgr_Email_Id = dr["Mgr_Email_Id"].ToString();
+			Mgr_EmplId = dr["Mgr_EmplId"].ToString();
+            LOA_Status = dr["LOA_Status"].ToString();
+        }
+
+        #endregion
+
+	}
+}
