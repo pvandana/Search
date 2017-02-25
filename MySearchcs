@@ -1,0 +1,171 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Data;
+using System.Data.SqlClient;
+using System.Configuration;
+
+namespace TestERCSearch
+{
+    public partial class Search : System.Web.UI.Page
+    {
+        SqlConnection conn = new SqlConnection(ConfigurationManager.ConnectionStrings["SqlConn"].ToString());
+
+        protected void Page_Load(object sender, EventArgs e)
+        {         
+
+            if (!IsPostBack)
+            {
+                caIdSearch.Visible = false;
+                emplIdSearch.Visible = false;
+                tmNameSearch.Visible = false;
+                mgrNameSearch.Visible = false;
+                pageButtons.Visible = false;               
+                pnlResults.Visible = false;
+            }
+        }
+        protected void ddlSearchBy_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+            switch (Convert.ToInt32(ddlSearchBy.SelectedIndex))
+            {
+                case 0:
+                    caIdSearch.Visible = false;
+                    emplIdSearch.Visible = false;
+                    tmNameSearch.Visible = false;
+                    mgrNameSearch.Visible = false;
+                    pageButtons.Visible = false;
+                    pnlResults.Visible = false;
+                    break;
+
+                case 1:
+                    caIdSearch.Visible = true;
+                    emplIdSearch.Visible = false;
+                    tmNameSearch.Visible = false;
+                    mgrNameSearch.Visible = false;
+                    pageButtons.Visible = true;
+                    break;
+
+                case 2:
+                    caIdSearch.Visible = false;
+                    emplIdSearch.Visible = true;
+                    tmNameSearch.Visible = false;
+                    mgrNameSearch.Visible = false;
+                    pageButtons.Visible = true;
+                    break;
+
+                case 3:
+                    caIdSearch.Visible = false;
+                    emplIdSearch.Visible = false;
+                    tmNameSearch.Visible = true;
+                    mgrNameSearch.Visible = false;
+                    pageButtons.Visible = true;
+                    break;
+
+                case 4:
+                    caIdSearch.Visible = false;
+                    emplIdSearch.Visible = false;
+                    tmNameSearch.Visible = false;
+                    mgrNameSearch.Visible = true;
+                    pageButtons.Visible = true;
+                    break;
+
+                default: Console.WriteLine("Invalid selection");
+                    break;
+            }
+
+        }
+        protected void btnSearch_Click(object sender, EventArgs e)
+        {
+            pnlResults.Visible = true;
+
+            if (Convert.ToInt32(ddlSearchBy.SelectedValue)== 1)
+                {
+                    SqlCommand cmd = new SqlCommand("GetCADetailsByCAId", conn);
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    SqlParameter p1 = new SqlParameter("@CAId", SqlDbType.Int);
+                    p1.Value = txtCAId.Text;
+                    cmd.Parameters.Add(p1);
+
+                    SqlDataAdapter da = new SqlDataAdapter(cmd);
+                    DataSet ds = new DataSet();
+                    da.Fill(ds, "Employee");
+
+                    gvResults.DataSource = ds.Tables[0];
+                    gvResults.DataBind();
+                    
+                }
+
+            else if (Convert.ToInt32(ddlSearchBy.SelectedValue) == 2)
+            {
+
+                SqlCommand cmd = new SqlCommand("GetCADetailsByEmplId", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                SqlParameter p1 = new SqlParameter("@EmplId", SqlDbType.Int);
+                p1.Value = txtEmplId.Text;
+                cmd.Parameters.Add(p1);
+
+                SqlDataAdapter da = new SqlDataAdapter(cmd);
+                DataSet ds = new DataSet();
+                da.Fill(ds, "Employee");
+
+                gvResults.DataSource = ds.Tables[0];
+                gvResults.DataBind();
+            }
+
+            else if (Convert.ToInt32(ddlSearchBy.SelectedValue) == 3)
+            {
+                SqlCommand cmd = new SqlCommand("GetCADetailsByTM_Name", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                SqlParameter p1 = new SqlParameter("@TM_FirstName", SqlDbType.VarChar);
+                p1.Value = txtTMFirstName.Text;
+                cmd.Parameters.Add(p1);
+
+                p1 = new SqlParameter("@TM_LastName", SqlDbType.VarChar);
+                p1.Value = txtTMLastName.Text;
+                cmd.Parameters.Add(p1);
+
+                SqlDataAdapter da = new SqlDataAdapter(cmd);
+                DataSet ds = new DataSet();
+                da.Fill(ds, "Employee");
+
+                gvResults.DataSource = ds.Tables[0];
+                gvResults.DataBind();
+            }
+
+            else if (Convert.ToInt32(ddlSearchBy.SelectedValue) == 4)
+            {
+                SqlCommand cmd = new SqlCommand("GetCADetailsByMgr_Name", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                SqlParameter p1 = new SqlParameter("@Mgr_FirstName", SqlDbType.VarChar);
+                p1.Value = txtMgrFirstName.Text;
+                cmd.Parameters.Add(p1);
+
+                p1 = new SqlParameter("@Mgr_LastName", SqlDbType.VarChar);
+                p1.Value = txtMgrLastName.Text;
+                cmd.Parameters.Add(p1);
+                                
+                SqlDataAdapter da = new SqlDataAdapter(cmd);
+                DataSet ds = new DataSet();
+                da.Fill(ds, "Employee");
+
+                gvResults.DataSource = ds.Tables[0];
+                gvResults.DataBind();
+            }
+        }
+
+        protected void btnCancel_Click(object sender, EventArgs e)
+        {
+         
+        }
+
+　
+    }
+}
