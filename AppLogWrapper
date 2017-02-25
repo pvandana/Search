@@ -1,0 +1,222 @@
+using System;
+using System.Configuration;
+using System.Diagnostics;
+using System.Web;
+using Microsoft.Practices.EnterpriseLibrary.Logging;
+
+//------------------------------------------------------------------------------
+//                                    AppLogWrapper.cs
+//
+//      Simplifies working with Enterprise Library Logging features
+//      E.g. Just call AppLogWrapper.LogError(...) or AppLogWrapper.LogTrace(...)
+// 
+//      // Log an error
+//      AppLogWrapper.LogError("Fatal Error Occurred");
+//
+//      // Log a trace message
+//      AppLogWrapper.LogTrace("Arrived Here");
+//
+//      // Log an error w/Exception object
+//      AppLogWrapper.LogError("Fatal Error Occurred", exc); 
+// 
+//------------------------------------------------------------------------------
+// 
+//                          Modification Control Log                           
+//                                                                             
+//    Date     By                 Description                                
+//  --------  ---  -------------------------------------------------------------
+//  01-14-14  JV   Initial creation of program                               
+// 
+//------------------------------------------------------------------------------
+
+namespace Reimbursements.Utilities
+{
+    class AppLogWrapper
+    {
+        #region Member Variables
+
+        // Constants
+        const string ErrorCategory = "Errors";
+        const string TraceCategory = "Informational";
+
+        #endregion
+
+　
+        #region Constructors
+
+        // Static Constructor (to setup default values for static properties)
+        static AppLogWrapper()
+        {
+            //ErrorCategory = "Errors";
+            //TraceCategory = "Informational";
+        }
+
+        #endregion
+
+　
+        #region Enums
+
+        #endregion
+
+　
+        #region Properties
+
+        // Supported Logging Categories
+        //public static string ErrorCategory { get; set; }
+        //public static string TraceCategory { get; set; }
+
+        #endregion
+
+　
+        #region Methods
+
+        // Method used in log routines to output Application Name
+        internal static string GetAppName()
+        {
+            // First try HR-standard web.config value...
+            try
+            {
+                string appName = ConfigurationManager.AppSettings["Application_Name"];
+
+                if (! String.IsNullOrEmpty(appName))
+                {
+                    return appName;
+                }
+            }
+            catch { }
+
+            // Otherwise, try host name as a substitute
+            try
+            {
+                string hostName = HttpContext.Current.Request.Url.DnsSafeHost;
+
+                if (! String.IsNullOrEmpty(hostName))
+                {
+                    return hostName;
+                }
+            }
+            catch { }
+
+　
+            // Otherwise, return generic string
+            return "Unknown";
+        }
+
+　
+        // Method used in log routines to output User ID
+        internal static string GetUserID()
+        {
+            // First, try Channel Secure
+            try
+            {
+                string hrisID = HttpContext.Current.Request.ServerVariables["HTTP_CSWFCEMPLID"];
+
+                if (! String.IsNullOrEmpty(hrisID))
+                {
+                    return hrisID;
+                }
+            }
+            catch { }
+
+　
+            // Next, try Identity.Name
+            try
+            {
+                string userID = HttpContext.Current.User.Identity.Name;
+
+                if (! String.IsNullOrEmpty(userID))
+                {
+                    return userID;
+                }
+            }
+            catch { }
+
+　
+            // Next, try HTTP_REMOTE_USER server variable
+            try
+            {
+                string userID = HttpContext.Current.Request.ServerVariables["HTTP_REMOTE_USER"];
+
+                if (! String.IsNullOrEmpty(userID))
+                {
+                    return userID;
+                }
+            }
+            catch { }
+
+            return "Anonymous";
+        }
+
+　
+        /// <summary>
+        /// Logs an Message 
+        /// </summary>
+        /// <param name="msg">Message</param>
+        /// <param name="exc">Exception</param>
+        /// <param name="severity">Severity</param>
+        /// <param name="category">Category</param>
+        private static void Log(string msg, Exception exc, TraceEventType severity, string category)
+        {
+            // Create log object
+            LogEntry logEntry = new LogEntry();
+
+            // Add custom message
+            logEntry.Message = msg;
+
+            // If Exception passed, append that to msg...
+            if (exc != null)
+            {
+                logEntry.Message += (" -- " + exc.ToString());
+            }
+
+            // Ensure message does not exceed database field width...
+            if (logEntry.Message.Length > 1499)
+            {
+                logEntry.Message = logEntry.Message.Remove(1499);
+            }
+
+            // Log application name and User ID in the Title field per an HR Architecture decision on May 7th, 2010
+            logEntry.Title = String.Format("{0} - {1}", 
+                                           GetAppName(), 
+                                           GetUserID());
+
+            // Add other log parameters...
+            logEntry.Severity = severity;
+            logEntry.TimeStamp = DateTime.Now;
+
+            logEntry.Categories.Add(category);
+
+            Logger.Write(logEntry);
+        }
+
+　
+        /// <summary>
+        /// Simplifies logging an error to a single method call...
+        /// </summary>
+        /// <param name="msg">Message</param>
+        /// <param name="exc">Exception</param>
+        internal static void LogError(string msg, System.Exception exc)
+        {
+            Log(msg, exc, TraceEventType.Error, ErrorCategory);
+        }
+
+　
+        // Simple LogError version without an Exception parameter
+        internal static void LogError(string msg)
+        {
+            LogError(msg, null);
+        }
+
+　
+        /// <summary>
+        /// Simplified Trace Logging operation
+        /// </summary>
+        /// <param name="msg">Message</param>
+        internal static void LogTrace(string msg)
+        {
+            Log(msg, null, TraceEventType.Information, TraceCategory);
+        }
+
+        #endregion
+    } 
+}
