@@ -1,0 +1,390 @@
+using System;
+using System.Configuration;
+using System.Data;
+using System.Data.Common;
+using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
+using Reimbursements.BusinessObjects;
+using Reimbursements.Utilities;
+
+//------------------------------------------------------------------------------
+//                                    FullRosterDA.cs
+//
+//      This class handles the Full Roster Data Access
+// 
+//------------------------------------------------------------------------------
+// 
+//                          Modification Control Log                           
+//                                                                             
+//    Date     By                 Description                                
+//  --------  ---  -------------------------------------------------------------
+//  01-14-14  JV   Initial creation of program                               
+// 
+//------------------------------------------------------------------------------
+
+namespace Reimbursements.DataAccess
+{
+    public class FullRosterDA
+    {
+        #region Member Variables
+
+        // Variables
+		private SqlDatabase _DB = null;
+
+        #endregion
+
+　
+        #region Constructors
+
+        public FullRosterDA()
+        {
+            // Initialize Variables
+            ErrMsg = string.Empty;
+
+            try
+            {
+				// Create an instance of the SQL Database class
+				_DB = new SqlDatabase(ConfigurationManager.ConnectionStrings["REIMB"].ToString());
+            }
+            catch (Exception err)
+            {
+                // Database Error
+                ErrMsg = string.Format("{0} - Connecting to Database Error - {1}",
+                                       GetType().FullName,
+                                       err.Message);
+
+                // Save the Error
+                CommonDA.SaveError(ErrMsg, err);
+            }
+        }
+
+        #endregion
+
+　
+        #region Enums
+
+        #endregion
+
+　
+        #region Properties
+
+        public string ErrMsg { get; set; }
+
+        #endregion
+
+　
+        #region Methods
+
+        /// <summary>
+        /// Gets the Full Roster Record for an Employee
+        /// </summary>
+        /// <param name="emplId">Employee Id</param>
+        /// <returns>FullRoster DataTable</returns>
+        public DataTable Get(string emplId)
+        {
+            // Define Constants
+            const string sp = "dbo.Get_TM_Name";
+
+            // Define Variables
+            DataSet ds = new DataSet();
+            DataTable dtName = new DataTable();
+
+            // Set Stored Procedure
+            DbCommand dbCommand = _DB.GetStoredProcCommand(sp);
+
+            try
+            {
+                // Set Input Parameters
+                _DB.AddInParameter(dbCommand, "EmplId", DbType.String, emplId);
+
+                ds = _DB.ExecuteDataSet(dbCommand);
+                dtName = ds.Tables[0];
+            }
+            catch (InternalException err)
+            {
+                // Re-Throw the Internal Exception
+                throw;
+            }
+            catch (Exception err)
+            {
+                // Format the Parameters
+                string parms = CommonDA.FormatParmsSQL(dbCommand);
+
+                // Database Error
+                ErrMsg = string.Format("{0} - Get Full Roster Data Error - Parameters = {1} - {2}",
+                                       GetType().FullName,
+                                       parms,
+                                       err.Message);
+
+                // Save the Error
+                CommonDA.SaveError(ErrMsg, err);
+            }
+            return dtName;
+        }
+
+　
+        /// <summary>
+        /// Retrieves the Team Member List based upon the search criteria
+        /// </summary>
+        /// <param name="emplId"></param>
+        /// <param name="lastName"></param>
+        /// <param name="firstName"></param>
+        /// <returns>Search Results DataTable</returns>
+        public DataTable GetSearchResults(string emplId, string lastName, string firstName)
+        {
+            // Define Constants
+            const string sp = "dbo.Get_Search_Results";
+
+            // Define Variables
+            string message = string.Empty;
+            DataSet ds = new DataSet();
+            DataTable dtSearchResults = new DataTable();
+
+            // Set Stored Procedure
+            DbCommand dbCommand = _DB.GetStoredProcCommand(sp);
+
+            try
+            {
+                // Only process when a value is passed
+                if (!string.IsNullOrEmpty(lastName)
+                    || !string.IsNullOrEmpty(emplId))
+                {
+                    if (!string.IsNullOrEmpty(emplId))
+                    {
+                        emplId = emplId.PadLeft(11, '0');
+                    }
+                    // Set Input Parameters
+                    _DB.AddInParameter(dbCommand, "EmplId", DbType.String, emplId);
+                    _DB.AddInParameter(dbCommand, "LastName", DbType.String, lastName);
+                    _DB.AddInParameter(dbCommand, "FirstName", DbType.String, firstName);
+                    //_DB.AddInParameter(dbCommand, "UserId", DbType.String, userId);
+
+                    ds = _DB.ExecuteDataSet(dbCommand);
+                    dtSearchResults = ds.Tables[0];
+                }
+            }
+            catch (InternalException err)
+            {
+                // Re-Throw the Internal Exception
+                throw;
+            }
+            catch (Exception err)
+            {
+                // Format the Parameters
+                string parms = CommonDA.FormatParmsSQL(dbCommand);
+
+                // Database Error
+                ErrMsg = string.Format("{0} - Get Search Results Error - Parameters = {1} - {2}",
+                                       GetType().FullName,
+                                       parms,
+                                       err.Message);
+
+                // Save the Error
+                CommonDA.SaveError(ErrMsg, err);
+            }
+
+            return dtSearchResults;
+        }
+
+　
+		/// <summary>
+		/// Get System Eligibility Checks by EmplId  
+		/// </summary>
+		/// <param name="emplId"></param>
+		/// <returns>SystemEligibilityChecksBO</returns>
+        internal SystemEligibilityChecksBO GetSystemEligibilityChecks(string emplId, DateTime asOfDate)
+		{
+			// Define Constants
+			const string sp = "dbo.Get_TM_System_Elig_Checks";
+
+			// Define Variables
+			SystemEligibilityChecksBO secBO = new SystemEligibilityChecksBO();
+
+			// Set Stored Procedure
+			DbCommand dbCommand = _DB.GetStoredProcCommand(sp);
+
+			try
+			{
+				// Set Input Parameters
+				_DB.AddInParameter(dbCommand, "EmplId", DbType.String, emplId);
+                _DB.AddInParameter(dbCommand, "AsOfDate", DbType.DateTime, asOfDate);
+
+				using (IDataReader dr = _DB.ExecuteReader(dbCommand))
+				{
+					// Process all the records
+					while (dr.Read())
+					{
+						// Save the Record
+						secBO.Save(dr);
+					}
+				}
+			}
+			catch (InternalException err)
+			{
+				// Re-Throw the Internal Exception
+				throw;
+			}
+			catch (Exception err)
+			{
+				// Format the Parameters
+				string parms = CommonDA.FormatParmsSQL(dbCommand);
+
+				// Database Error
+				ErrMsg = string.Format("{0} - Get_TM_System_Elig_Checks Record By emplId Error - Parameters = {1} - {2}",
+									   GetType().FullName,
+									   parms,
+									   err.Message);
+
+				// Save the Error
+				CommonDA.SaveError(ErrMsg, err);
+			}
+			return secBO;
+		}
+
+　
+        /// <summary>
+        /// Gets the Team Member's Email Address and Manager's Email Address
+        /// </summary>
+        /// <param name="emplId">Employee Id</param>
+        /// <returns>TMEmail DataTable</returns>
+        public DataTable GetTMEmail(string emplId)
+        {
+            // Define Constants
+            const string sp = "dbo.Get_TM_Email";
+
+            // Define Variables
+            DataSet ds = new DataSet();
+            DataTable dtTMEmail = new DataTable();
+
+            // Set Stored Procedure
+            DbCommand dbCommand = _DB.GetStoredProcCommand(sp);
+
+            try
+            {
+                // Set Input Parameters
+                _DB.AddInParameter(dbCommand, "EmplId", DbType.String, emplId);
+
+                ds = _DB.ExecuteDataSet(dbCommand);
+                dtTMEmail = ds.Tables[0];
+            }
+            catch (InternalException err)
+            {
+                // Re-Throw the Internal Exception
+                throw;
+            }
+            catch (Exception err)
+            {
+                // Format the Parameters
+                string parms = CommonDA.FormatParmsSQL(dbCommand);
+
+                // Database Error
+                ErrMsg = string.Format("{0} - Get Team Member Email Error - Parameters = {1} - {2}",
+                                       GetType().FullName,
+                                       parms,
+                                       err.Message);
+
+                // Save the Error
+                CommonDA.SaveError(ErrMsg, err);
+            }
+
+            return dtTMEmail;
+        }
+
+　
+        /// <summary>
+        /// Gets the Team Member Information for an Employee
+        /// </summary>
+        /// <param name="emplId">Employee Id</param>
+        /// <returns>TMInfo DataTable</returns>
+        public DataTable GetTMInfo(string emplId)
+        {
+            // Define Constants
+            const string sp = "dbo.Get_TM_Info_Profile";
+
+            // Define Variables
+            DataSet ds = new DataSet();
+            DataTable dtTMInfo = new DataTable();
+
+            // Set Stored Procedure
+            DbCommand dbCommand = _DB.GetStoredProcCommand(sp);
+
+            try
+            {
+                // Set Input Parameters
+                _DB.AddInParameter(dbCommand, "EmplId", DbType.String, emplId);
+
+                ds = _DB.ExecuteDataSet(dbCommand);
+                dtTMInfo = ds.Tables[0];
+            }
+            catch (InternalException err)
+            {
+                // Re-Throw the Internal Exception
+                throw;
+            }
+            catch (Exception err)
+            {
+                // Format the Parameters
+                string parms = CommonDA.FormatParmsSQL(dbCommand);
+
+                // Database Error
+                ErrMsg = string.Format("{0} - Get Team Member Info Error - Parameters = {1} - {2}",
+                                       GetType().FullName,
+                                       parms,
+                                       err.Message);
+
+                // Save the Error
+                CommonDA.SaveError(ErrMsg, err);
+            }
+
+            return dtTMInfo;
+        }
+
+　
+		/// <summary>
+		/// Gets the Tuition Request Count for the Manager EmplId  (Approval Central)
+		/// </summary>
+		/// <param name="mgrEmplId">MgrEmployee Id</param>
+		/// <returns>Count</returns>
+		public int GetTRCount(string mgrEmplId)
+		{
+			// Define Constants
+			const string sp = "dbo.Get_TuitReq_Count_By_MgrEmplId";
+
+			// Define Variables
+			int count = 0;
+
+			// Set Stored Procedure
+			DbCommand dbCommand = _DB.GetStoredProcCommand(sp);
+
+			try
+			{
+				// Set Input Parameters
+				_DB.AddInParameter(dbCommand, "Mgr_EmplId", DbType.String, mgrEmplId);
+
+				count = (int)_DB.ExecuteScalar(dbCommand);
+			}
+			catch (InternalException err)
+			{
+				// Re-Throw the Internal Exception
+				throw;
+			}
+			catch (Exception err)
+			{
+				// Format the Parameters
+				string parms = CommonDA.FormatParmsSQL(dbCommand);
+
+				// Database Error
+				ErrMsg = string.Format("{0} - GetTRCount() Error - Parameters = {1} - {2}",
+									   GetType().FullName,
+									   parms,
+									   err.Message);
+
+				// Save the Error
+				CommonDA.SaveError(ErrMsg, err);
+			}
+
+			return count;
+		}
+
+		#endregion
+    }
+}
