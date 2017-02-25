@@ -1,0 +1,220 @@
+<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Search.aspx.cs" Inherits="TestERCSearch.Search" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div>
+
+    <h1>ERC Search</h1>
+    <br /><br />
+ <asp:Panel ID="pnlCriteria" 
+               runat="server" 
+               CssClass="Panel" 
+               GroupingText="Search Criteria">
+   
+    <table cellpadding="10" 
+               cellspacing="1" 
+               width="99%">
+               
+    <tr>
+      <td align="right" 
+                    nowrap="nowrap" 
+                    width="45%">  
+                    
+            <asp:Label ID="lblSearchBy" runat="server" Text="Search By :"></asp:Label> 
+      </td>
+       <td width="55%"> 
+            <asp:DropDownList ID="ddlSearchBy" runat="server" AutoPostBack="True" 
+            OnSelectedIndexChanged="ddlSearchBy_SelectedIndexChanged">
+            <asp:ListItem Selected="True" Text="Select" Value="0" />
+            <asp:ListItem Text="CA ID" Value="1" />
+            <asp:ListItem Text="Employee ID" Value="2" />
+            <asp:ListItem Text="TM Name" Value="3" />
+            <asp:ListItem Text="Manager Name" Value="4" />
+        </asp:DropDownList> 
+       </td>
+    </tr>
+    <tr><td></td><td></td></tr>
+    
+    <tr id="caIdSearch" runat="server">
+       <td align="right" 
+                    nowrap="nowrap" 
+                    width="45%">
+                    CA ID:
+                    </td>
+                    <td width="55%">
+                    <asp:TextBox ID="txtCAId" 
+                     runat="server" 
+                     ClientIDMode="Static" />
+        <asp:RequiredFieldValidator ID="rfvCAId" 
+                                    runat="server" 
+                                    ControlToValidate="txtCAId" 
+                                    Display="Dynamic" 
+                                    ErrorMessage="Please enter CA Id" 
+                                    ForeColor="Red" 
+                                    SetFocusOnError="True" 
+                                    Text="*" /> 
+        </td>
+    </tr> 
+                                    
+
+    <tr id="emplIdSearch" runat="server">
+       <td align="right" 
+                    nowrap="nowrap" 
+                    width="45%">
+                    Employee ID:
+                    </td>
+                    <td width="55%">
+                    <asp:TextBox ID="txtEmplId" 
+                     runat="server" 
+                     ClientIDMode="Static" />
+        <asp:RequiredFieldValidator ID="RequiredFieldValidator1" 
+                                    runat="server" 
+                                    ControlToValidate="txtEmplId" 
+                                    Display="Dynamic" 
+                                    ErrorMessage="Please enter CA Id" 
+                                    ForeColor="Red" 
+                                    SetFocusOnError="True" 
+                                    Text="*" /> 
+           </td>
+    </tr> 
+
+                                   
+    <tr id="tmNameSearch" runat="server">
+       <td align="right" 
+           nowrap="nowrap" 
+           width="45%">
+           Last Name:
+                  &nbsp;&nbsp;
+                <asp:TextBox ID="txtTMLastName" 
+                             runat="server" 
+                             Width="200px" />
+                <%--<asp:RequiredFieldValidator ID="rfvTMLastName" 
+                                            runat="server" 
+                                            ControlToValidate="txtTMLastName" 
+                                            Display="Dynamic" 
+                                            ErrorMessage="Enter Last Name" 
+                                            ForeColor="Red" 
+                                            SetFocusOnError="true" 
+                                            Text="*" />--%>
+                <asp:RegularExpressionValidator ID="revTMLastName" 
+                                                runat="server" 
+                                                ControlToValidate="txtTMLastName" 
+                                                Display="Dynamic" 
+                                                ErrorMessage="You must enter atleast the first two letters in the last name" 
+                                                ForeColor="Red" 
+                                                SetFocusOnError="true" 
+                                                Text="*" 
+                                                ValidationExpression=".{2}.*" />
+                                                </td>
+                                                <td width="55%">
+                  <%--&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--%>
+                  First Name:
+                  &nbsp;&nbsp;
+                  <asp:TextBox ID="txtTMFirstName" 
+                               runat="server" 
+                               Width="200px" />
+           </td>
+     </tr>
+                               
+
+       <tr id="mgrNameSearch" runat="server">
+       <td align="right" 
+           nowrap="nowrap" 
+           width="45%">
+           Last Name:
+                  &nbsp;&nbsp;
+                <asp:TextBox ID="txtMgrLastName" 
+                             runat="server" 
+                             Width="200px" />
+                <%--<asp:RequiredFieldValidator ID="rfvMgrLastName" 
+                                            runat="server" 
+                                            ControlToValidate="txtMgrLastName" 
+                                            Display="Dynamic" 
+                                            ErrorMessage="Enter Last Name" 
+                                            ForeColor="Red" 
+                                            SetFocusOnError="true" 
+                                            Text="*" />--%>
+                <asp:RegularExpressionValidator ID="revMgrLastName" 
+                                                runat="server" 
+                                                ControlToValidate="txtMgrLastName" 
+                                                Display="Dynamic" 
+                                                ErrorMessage="You must enter atleast the first two letters in the last name" 
+                                                ForeColor="Red" 
+                                                SetFocusOnError="true" 
+                                                Text="*" 
+                                                ValidationExpression=".{2}.*" />
+                                                </td>
+                                                <td width="55%">
+                  <%--&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--%>
+                  First Name:
+                  &nbsp;&nbsp;
+                  <asp:TextBox ID="txtMgrFirstName" 
+                               runat="server" 
+                               Width="200px" />
+           </td>
+     </tr>
+                            
+     <tr id="pageButtons" runat="server">
+                               
+           <td align="center"
+                    colspan="2" 
+                    nowrap="nowrap">
+           <asp:Button ID="btnSearch" 
+                                runat="server" 
+                                onclick="btnSearch_Click" 
+                                Text="    Search    " />
+                    <asp:ValidationSummary ID="ValidationSummary1" 
+                                           runat="server" 
+                                           ShowMessageBox="true" 
+                                           ShowSummary="false" 
+                                           HeaderText="Please enter one of the following:" />
+
+                                           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                           
+                                           <asp:Button ID="btnCancel" 
+                                runat="server" 
+                                CausesValidation="false" 
+                                onclick="btnCancel_Click"                                 
+                                Text="    Cancel    " />
+            </td>
+       </tr>
+    </table>
+      </asp:Panel>
+
+    <br /><br />
+
+  
+     <asp:Panel ID="pnlResults" 
+               runat="server" 
+               CssClass="Panel" 
+               GroupingText="Search Results">
+
+    <asp:GridView ID="gvResults" 
+                  runat="server" BackColor="#CCCCCC" BorderColor="#999999" 
+         BorderStyle="Solid" BorderWidth="3px" CellPadding="4" CellSpacing="2" 
+         ForeColor="Black" EmptyDataText="No Data Found" ShowHeaderWhenEmpty="True">
+                  
+        <FooterStyle BackColor="#CCCCCC" />
+        <HeaderStyle BackColor="Black" Font-Bold="True" ForeColor="White" />
+        <PagerStyle BackColor="#CCCCCC" ForeColor="Black" HorizontalAlign="Left" />
+        <RowStyle BackColor="White" />
+        <SelectedRowStyle BackColor="#000099" Font-Bold="True" ForeColor="White" />
+        <SortedAscendingCellStyle BackColor="#F1F1F1" />
+        <SortedAscendingHeaderStyle BackColor="#808080" />
+        <SortedDescendingCellStyle BackColor="#CAC9C9" />
+        <SortedDescendingHeaderStyle BackColor="#383838" />
+                  
+     </asp:GridView>                              
+     
+       </asp:Panel>
+
+     </div>                                    
+    </form>
+</body>
+</html>
