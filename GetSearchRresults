@@ -1,0 +1,113 @@
+USE [Reimbursements]
+GO
+/****** Object:  StoredProcedure [dbo].[Get_Search_Results]    Script Date: 2/24/2017 5:43:15 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		Tim McCulloch
+-- Create date: 12/16/14
+-- Description:	Get a list of team members that match the search criteria
+-- =============================================
+ALTER PROCEDURE [dbo].[Get_Search_Results] 
+	-- Add the parameters for the stored procedure here
+	@EmplId    char(11)    = Null, 
+	@LastName  varchar(30) = Null, 
+	@FirstName varchar(30) = Null, 
+	@RequestId int         = Null,
+	@TuitWW    char(1)     = Null, 
+	@Debug     bit         = 0
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+	-- Define variables
+	Declare @ParmList nvarchar(Max),
+			@SQL nvarchar(Max),
+			@Where nvarchar(Max),
+			@Order nvarchar(Max)
+
+	-- Pad the EmplId to 11 characters
+	If Len(@EmplId) > 0
+	  Set @EmplId = Right('00000000000' + LTrim(RTrim(@EmplId)), 11) 
+
+	-- Create the Query
+    -- Gets a list of Team Members that match the search criteria
+	--	Select r.EmplId, '''' As Request_Id, Name, 
+	Select @SQL = '
+		Select r.EmplId, Name, 
+			   IsNull(Job_Title + Char(10), '''') + IsNull(Company_Name + Char(10), '''') + IsNull(Exec_Descr + Char(10), '''') + IsNull(Org_Descr + Char(10), '''') + IsNull(Group_Descr, '''') As Job_Org,
+			   IsNull(Mail_Station + Char(10), '''') + IsNull(Location_Address1 + Char(10), '''') + IsNull(Location_Address2 + Char(10), '''') + IsNull(Location_City + '', '', '''') + IsNull(Location_State + ''  '', '''') + IsNull(Location_Zip, '''') As Business_Address,
+			   Mgr_Name
+		  From HRPrdSS.dbo.HR_Full_Roster r ' 
+		
+	If Len(@LastName) > 0
+	  Begin
+		Set @LastName = @LastName + '%'
+		
+		If Len(@FirstName) > 0
+		  Begin
+			Set @FirstName = @FirstName + '%'
+		
+			-- For Last & First Name
+			Select @Where = '
+			 Where (Last_Name Like @LastName
+					Or Last_Name_Srch Like @LastName) 
+			   And (First_Name Like @FirstName
+					Or First_Name_Srch Like @FirstName) '
+		  End
+		Else
+			-- For Last Name
+			Select @Where = '
+			 Where (Last_Name Like @LastName
+					Or Last_Name_Srch Like @LastName) ' 
+	  End
+	Else If Len(@EmplId) > 0
+		-- For Employee Id
+		Select @Where = '
+		 Where r.EmplId = @EmplId '
+	Else
+	  Begin
+		-- For Request Id
+		If Len(@TuitWW) > 0 And @TuitWW = 'W'
+			-- For Weight Watcher Request
+			Select @Where = '
+					 Join dbo.WW_Requests wr
+					   On wr.EmplId = r.EmplId 
+			 Where wr.Request_Id = @RequestId '
+		Else
+			-- For Tuition Request
+			Select @Where = '
+					 Join dbo.Tuition_Requests tr
+					   On tr.EmplId = r.EmplId 
+			 Where tr.Request_Id = @RequestId '
+	  End
+		   
+	Select @Order = '
+		Order By Name'
+
+	Select @SQL = @SQL + @Where + @Order
+
+	-- Print the SQL?
+	If @Debug = 1
+	  Begin
+		Print Len(@SQL)
+		Print @SQL
+		
+		If Len(@SQL)> 4000
+		    Print Right(@SQL, Len(@SQL) - 4000)
+	  End
+
+	-- Create the Parameter List
+	Select @ParmList = '@LastName varchar(30),
+						@FirstName varchar(30),
+						@EmplId varchar(11),
+						@RequestId int'
+
+	-- Execute the Query
+	Exec sp_executesql @SQL, @ParmList, @LastName, @FirstName, @EmplId, @RequestId
+
+END
