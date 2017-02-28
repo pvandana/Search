@@ -1,0 +1,72 @@
+USE [Employee]
+GO
+
+/****** Object:  Table [dbo].[TM_CA_Details]    Script Date: 2/27/2017 7:12:43 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+SET ANSI_PADDING ON
+GO
+
+CREATE TABLE [dbo].[TM_CA_Details](
+	[Seq_Num] [int] IDENTITY(1,1) NOT NULL,
+	[EmplId] [varchar](11) NOT NULL,
+	[CAId] [varchar](50) NOT NULL,
+	[TM_FirstName] [varchar](50) NOT NULL,
+	[TM_LastName] [varchar](50) NOT NULL,
+	[Mgr_FirstName] [varchar](50) NOT NULL,
+	[Mgr_LastName] [varchar](50) NULL,
+	[TemplateType] [varchar](50) NOT NULL,
+	[CA_StartDt] [datetime] NOT NULL,
+	[Ack_DueDt] [datetime] NULL,
+	[Status] [varchar](50) NOT NULL,
+	[Action] [varchar](50) NOT NULL,
+ CONSTRAINT [PK_TM_CA_Details] PRIMARY KEY CLUSTERED 
+(
+	[Seq_Num] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+SET ANSI_PADDING OFF
+GO
+
+
+
+USE [Employee]
+GO
+
+INSERT INTO [dbo].[TM_CA_Details]
+           ([EmplId]
+           ,[CAId]
+           ,[TM_FirstName]
+           ,[TM_LastName]
+           ,[Mgr_FirstName]
+           ,[Mgr_LastName]
+           ,[TemplateType]
+           ,[CA_StartDt]
+           ,[Ack_DueDt]
+           ,[Status]
+           ,[Action])
+     VALUES
+           (<EmplId, varchar(11),>
+           ,<CAId, varchar(50),>
+           ,<TM_FirstName, varchar(50),>
+           ,<TM_LastName, varchar(50),>
+           ,<Mgr_FirstName, varchar(50),>
+           ,<Mgr_LastName, varchar(50),>
+           ,<TemplateType, varchar(50),>
+           ,<CA_StartDt, datetime,>
+           ,<Ack_DueDt, datetime,>
+           ,<Status, varchar(50),>
+           ,<Action, varchar(50),>)
+GO
+
+　
+　
+　
+　
