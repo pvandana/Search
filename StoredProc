@@ -1,0 +1,52 @@
+ALTER PROCEDURE [dbo].[GetCADetailsByCAId] 
+	-- Add the parameters for the stored procedure here
+	@CAId varchar(50)
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	Select EmplId, TM_FirstName, TM_LastName, TemplateType, CA_StartDt, Ack_DueDt, Status, Action
+	FROM
+	TM_CA_Details
+	WHERE
+	CAId = @CAId
+END
+ALTER PROCEDURE [dbo].[GetCADetailsByMgr_Name] 
+	-- Add the parameters for the stored procedure here
+	@Mgr_FirstName varchar(50) = NULL,
+	@Mgr_LastName varchar(50) = NULL
+	
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+
+	Select EmplId, TM_FirstName, TM_LastName, TemplateType, CA_StartDt, Ack_DueDt, Status, Action
+	FROM
+	TM_CA_Details
+	WHERE
+		Mgr_LastName = @Mgr_LastName OR Mgr_FirstName = @Mgr_FirstName
+	
+	END
+ALTER PROCEDURE [dbo].[GetCADetailsByEmplId] 
+	-- Add the parameters for the stored procedure here
+	@EmplId varchar(50)
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	Select EmplId, TM_FirstName, TM_LastName,TemplateType, CA_StartDt, Ack_DueDt, Status, Action
+	FROM
+	TM_CA_Details
+	WHERE
+	EmplId = @EmplId
+END
