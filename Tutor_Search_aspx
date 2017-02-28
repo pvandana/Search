@@ -1,0 +1,334 @@
+<%@ Page Title="Search" 
+         Language="C#" 
+         MasterPageFile="~/MasterPages/PopUp.Master"         
+         AutoEventWireup="true" 
+         CodeBehind="Search.aspx.cs" 
+         Inherits="EPF.CAW.Search" %>
+
+<asp:Content ID="Content1" 
+             ContentPlaceHolderID="HeadContent" 
+             runat="server">
+
+    <link href="/Styles/Grid.css" 
+          rel="stylesheet" 
+          type="text/css" />
+    <script language="JavaScript"
+            type="text/javascript" 
+            src="../Scripts/GridView.js">
+    </script>
+
+    <script type="text/javascript">
+
+        function ValidateNameId(oSrc, args) {
+            var txtTMLastName = document.getElementById("<%= txtTMLastName.ClientID %>").value
+            var txtMgrLastName = document.getElementById("<%= txtMgrLastName.ClientID %>").value
+            var txtEmplId = document.getElementById("<%= txtEmplId.ClientID %>").value
+
+            if ((txtTMLastName.length == 0) && (txtMgrLastName.length == 0)
+                && (txtEmplId.length == 0)) {
+                args.IsValid = false;
+                return;
+            }
+
+            return true;
+        }
+
+    </script>
+
+</asp:Content>
+
+<asp:Content ID="Content2" 
+             ContentPlaceHolderID="MainContent" 
+             runat="server">
+
+    <%--<h1>ERC Search</h1>
+    <br /><br />--%>
+ 
+    <asp:Panel ID="pnlCriteria" 
+               runat="server" 
+               CssClass="Panel" 
+               GroupingText="Search Criteria">
+    <table cellpadding="10" 
+               cellspacing="1" 
+               width="99%">
+               
+    <tr>
+      <td align="right" 
+          nowrap="nowrap" 
+          width="45%">  
+                    
+            Search By:
+      </td>
+       <td width="55%"> 
+            <asp:DropDownList ID="ddlSearchBy" 
+                              runat="server"
+                              AutoPostBack="True" 
+                              OnSelectedIndexChanged="ddlSearchBy_SelectedIndexChanged">
+            <asp:ListItem Selected="True" Text="Select" Value="0" />
+            <asp:ListItem Text="CA ID" Value="1" />
+            <asp:ListItem Text="Employee ID" Value="2" />
+            <asp:ListItem Text="TM Name" Value="3" />
+            <asp:ListItem Text="Manager Name" Value="4" />
+           </asp:DropDownList> 
+       </td>
+    </tr>
+
+    <tr>
+        <td align="center" 
+            colspan="2" 
+            nowrap="nowrap">
+            <asp:MultiView ID="mvSearchBy" 
+                           runat="server" 
+                           ActiveViewIndex="0">
+
+       <asp:View ID="vCAId" 
+                 runat="server">
+                    CA ID:
+                    &nbsp;&nbsp;         
+            <asp:TextBox ID="txtCAId" 
+                         runat="server" 
+                         ClientIDMode="Static" />
+            <asp:RequiredFieldValidator ID="rfvCAId" 
+                                    runat="server" 
+                                    ControlToValidate="txtCAId" 
+                                    Display="Dynamic" 
+                                    ErrorMessage="Please enter CA Id" 
+                                    ForeColor="Red" 
+                                    SetFocusOnError="True" 
+                                    Text="*" />                           
+
+        </asp:View>
+
+        <asp:View ID="vEmplId" 
+                  runat="server">
+                     Employee ID:
+                    &nbsp;&nbsp;               
+           <asp:TextBox ID="txtEmplId" 
+                        runat="server" 
+                        ClientIDMode="Static" 
+                        MaxLength="11" />
+           <asp:RequiredFieldValidator ID="rfvEmplId" 
+                                    runat="server" 
+                                    ControlToValidate="txtEmplId" 
+                                    Display="Dynamic" 
+                                    ErrorMessage="Please enter Employee Id" 
+                                    ForeColor="Red" 
+                                    SetFocusOnError="True" 
+                                    Text="*" />                                          
+        </asp:View>
+
+        <asp:View ID="vTMName" 
+                  runat="server">                  
+            Last Name:
+            &nbsp;&nbsp;
+            <asp:TextBox ID="txtTMLastName" 
+                         runat="server" 
+                         Width="200px" />
+                <asp:RequiredFieldValidator ID="rfvTMLastName" 
+                                            runat="server" 
+                                            ControlToValidate="txtTMLastName" 
+                                            Display="Dynamic" 
+                                            ErrorMessage="Enter Last Name" 
+                                            ForeColor="Red" 
+                                            SetFocusOnError="true" 
+                                            Text="*" />
+                <asp:RegularExpressionValidator ID="revTMLastName" 
+                                                runat="server" 
+                                                ControlToValidate="txtTMLastName" 
+                                                Display="Dynamic" 
+                                                ErrorMessage="You must enter atleast the first two letters in the last name" 
+                                                ForeColor="Red" 
+                                                SetFocusOnError="true" 
+                                                Text="*" 
+                                                ValidationExpression=".{2}.*" />
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  First Name:
+                  &nbsp;&nbsp;
+                  <asp:TextBox ID="txtTMFirstName" 
+                               runat="server" 
+                               Width="200px" />                              
+          </asp:View>
+
+ 
+          <asp:View ID="VMgrName" 
+                  runat="server">                  
+                  Last Name:
+                  &nbsp;&nbsp;
+                <asp:TextBox ID="txtMgrLastname" 
+                             runat="server" 
+                             Width="200px" />
+                <asp:RequiredFieldValidator ID="rfvMgrLastName" 
+                                            runat="server" 
+                                            ControlToValidate="txtMgrLastname" 
+                                            Display="Dynamic" 
+                                            ErrorMessage="Enter Last Name" 
+                                            ForeColor="Red" 
+                                            SetFocusOnError="true" 
+                                            Text="*" />
+                <asp:RegularExpressionValidator ID="revMgrLastName" 
+                                                runat="server" 
+                                                ControlToValidate="txtMgrLastname" 
+                                                Display="Dynamic" 
+                                                ErrorMessage="You must enter atleast the first two letters in the last name" 
+                                                ForeColor="Red" 
+                                                SetFocusOnError="true" 
+                                                Text="*" 
+                                                ValidationExpression=".{2}.*" />
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  First Name:
+                  &nbsp;&nbsp;
+                  <asp:TextBox ID="txtMgrFirstName" 
+                               runat="server" 
+                               Width="200px" />                               
+           </asp:View>
+
+       </asp:MultiView>
+            <br />
+         </td>
+     </tr>
+              
+      <tr>
+          <td align="center"
+              colspan="2" 
+              nowrap="nowrap">
+              <asp:Button ID="btnSearch" 
+                          runat="server" 
+                          onclick="btnSearch_Click" 
+                          Text="    Search    " />
+              <asp:ValidationSummary ID="ValidationSummary1" 
+                                     runat="server" 
+                                     ShowMessageBox="true" 
+                                     ShowSummary="false" 
+                                     HeaderText="Please enter one of the following:" />
+               &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+               <asp:Button ID="btnCancel" 
+                           runat="server" 
+                           CausesValidation="false" 
+                           onclick="btnCancel_Click" 
+                           Text="    Cancel    " />
+            </td>
+        </tr>     
+ </table>
+</asp:Panel>
+<br />
+
+<asp:Panel ID="pnlResults" 
+           runat="server" 
+           CssClass="Panel" 
+           GroupingText="Search Results">
+        <asp:SqlDataSource ID="sdsResults" 
+                           runat="server"
+                           CancelSelectOnNullParameter="False"
+                           ConnectionString="<%$ ConnectionStrings:CAW %>" 
+                           OnSelected="sdsResults_Selected"
+                           SelectCommand="Get_Ca_DetailsByCAID"
+                           SelectCommandType="StoredProcedure">
+         <SelectParameters>
+            <asp:ControlParameter ControlID="txtCAId"
+                                  DbType="String"
+                                  Name="CAId"
+                                  PropertyName="Text" />
+           <%-- <asp:ControlParameter ControlID="txtEmplId"
+                                  DbType="String"
+                                  Name="EmplId"
+                                  PropertyName="Text" />
+            <asp:ControlParameter ControlID="txtTMLastName" 
+                                  DbType="String"
+                                  Name="TMLastName" 
+                                  PropertyName="Text" />
+            <asp:ControlParameter ControlID="txtTMFirstName" 
+                                  DbType="String"
+                                  Name="TMFirstName" 
+                                  PropertyName="Text" />
+            <asp:ControlParameter ControlID="txtMgrLastName" 
+                                  DbType="String"
+                                  Name="MgrLastName" 
+                                  PropertyName="Text" />
+            <asp:ControlParameter ControlID="txtMgrFirstName" 
+                                  DbType="String"
+                                  Name="MgrFirstName" 
+                                  PropertyName="Text" />         --%>
+         </SelectParameters>
+       </asp:SqlDataSource>
+
+       <asp:GridView ID="gvResults" 
+                        runat="server" 
+                        AllowPaging="True" 
+                        AllowSorting="True" 
+                        AutoGenerateColumns="False"
+                        CellPadding="4" 
+                        ClientIDMode="Static"
+                        DataKeyNames="EmplId"
+                        DataSourceID="sdsResults"
+                        EmptyDataText="No Data Found" 
+                        OnRowDataBound="gvResults_RowDataBound"
+                        OnSelectedIndexChanged="gvResults_SelectedIndexChanged"
+                        PagerSettings-Mode="NumericFirstLast"
+                        PageSize="20"
+                        ShowHeaderWhenEmpty="True">
+
+            <%--     GridView Columns     --%>
+            <Columns>
+                
+                <%--     Employee Id     --%>
+                <asp:BoundField DataField="EmplId"
+                                HeaderText="Employee ID" 
+                                HeaderStyle-Width="100px" 
+                                ItemStyle-Wrap="False" 
+                                ReadOnly="True" 
+                                SortExpression="EmplId" />
+
+                <%--     Name     --%>
+                <asp:TemplateField HeaderText="Name" 
+                                HeaderStyle-Width="150px" 
+                                ItemStyle-Wrap="False">
+                <ItemTemplate>
+                <%#Eval("TM_LastName") + " " + Eval("TM_FirstName")%>
+                </ItemTemplate>
+                </asp:TemplateField>
+                <asp:BoundField DataField="TemplateType"
+                                HeaderText="TemplateType" 
+                                HeaderStyle-Width="150px" 
+                                ItemStyle-Wrap="False" 
+                                ReadOnly="True" 
+                                SortExpression="TemplateType" />
+                <asp:BoundField DataField="CA_StartDt"
+                                HeaderText="CA_StartDt" 
+                                HeaderStyle-Width="150px" 
+                                ItemStyle-Wrap="False" 
+                                ReadOnly="True" 
+                                SortExpression="CA_StartDt" />
+
+<asp:BoundField DataField="Ack_DueDt"
+                                HeaderText="Ack_DueDt" 
+                                HeaderStyle-Width="150px" 
+                                ItemStyle-Wrap="False" 
+                                ReadOnly="True" 
+                                SortExpression="Ack_DueDt" />
+                    <asp:BoundField DataField="Status"
+                                HeaderText="Status" 
+                                HeaderStyle-Width="150px" 
+                                ItemStyle-Wrap="False" 
+                                ReadOnly="True" 
+                                SortExpression="Status" />
+                                <asp:BoundField DataField="Action"
+                                HeaderText="Action" 
+                                HeaderStyle-Width="150px" 
+                                ItemStyle-Wrap="False" 
+                                ReadOnly="True" 
+                                SortExpression="Action" />
+
+
+                <asp:BoundField DataField="TemplateType"
+                                HeaderText="TemplateType" 
+                                HeaderStyle-Width="150px" 
+                                ItemStyle-Wrap="False" 
+                                ReadOnly="True" 
+                                SortExpression="TemplateType" />
+
+            </Columns>
+
+       </asp:GridView>
+
+</asp:Panel>
+</asp:Content>
