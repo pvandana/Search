@@ -1,0 +1,67 @@
+<%@ Master Language="C#" 
+           AutoEventWireup="true" 
+           CodeBehind="PopUp.master.cs" 
+           Inherits="EPF.MasterPages.PopUp" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1" runat="server">
+    <title></title>
+    <link href="../Styles/Site.css" 
+          rel="stylesheet" 
+          type="text/css" />
+    <script language="JavaScript"
+            type="text/javascript" 
+            src="../Scripts/PopUp.js">
+    </script>
+    <script language="JavaScript"
+            type="text/javascript" 
+            src="../Scripts/jquery-1.7.1.min.js">
+    </script>
+    <asp:ContentPlaceHolder ID="HeadContent" 
+                            runat="server">
+    </asp:ContentPlaceHolder>
+</head>
+
+<body>
+    <form id="form1" 
+          runat="server">
+          <asp:ScriptManager ID="ScriptManager1" runat="server" />
+        <div class="popupPage">
+            <div class="header">
+                <div class="logo">
+                    <img alt="Wells Fargo Logo" 
+                         class="wfLogo"
+                         src="/Images/logo_standard_48.gif"/>
+                </div>
+
+                <div class="headerRight" 
+                     style="width: 82%">
+                    <a href="#" 
+                       onclick="parent.close()">
+                        Close</a>
+                    <br />
+                    <div class="appName">
+                        <asp:Label ID="lblScreenName" 
+                                   runat="server" />
+                    </div>
+                </div>
+            </div>
+            <div class="clear"></div>
+
+            <div class="mainPopUp">
+                <asp:ContentPlaceHolder ID="MainContent" 
+                                        runat="server"/>
+            </div>
+            <div class="clear"></div>
+
+            <div class="footer">
+                <div class="greyLine"></div>
+                <span>&copy; 2017 Wells Fargo. All rights reserved.</span>
+            </div>
+        </div>
+    <br /><br />
+    </form>
+</body>
+</html>
