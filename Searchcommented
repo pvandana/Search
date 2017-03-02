@@ -1,0 +1,1820 @@
+
+ASPX
+
+<%@ Page
+Title="Search"
+
+
+         Language="C#"
+
+
+         MasterPageFile="~/MasterPages/PopUp.Master"         
+
+         AutoEventWireup="true"
+
+
+         CodeBehind="Search.aspx.cs"
+
+
+         Inherits="EPF.CAW.Search"
+%>
+
+ 
+
+<asp:Content ID="Content1" 
+
+             ContentPlaceHolderID="HeadContent"
+
+
+             runat="server">
+
+ 
+
+    <link href="/Styles/Grid.css"
+
+
+          rel="stylesheet"
+
+
+          type="text/css"
+/>
+
+    <script language="JavaScript"
+
+            type="text/javascript"
+
+
+            src="../Scripts/GridView.js">
+
+    </script>
+
+ 
+
+    <script type="text/javascript">
+
+ 
+
+        function ValidateNameId(oSrc, args) {
+
+            var txtTMLastName = document.getElementById("<%=
+txtTMLastName.ClientID %>").value
+
+ 
+
+            var txtEmplId = document.getElementById("<%=
+txtEmplId.ClientID %>").value
+
+ 
+
+            if ((txtTMLastName.length == 0) 
+
+               
+&& (txtEmplId.length == 0)) {
+
+               
+args.IsValid = false;
+
+               
+return;
+
+            }
+
+ 
+
+            return true;
+
+        }
+
+ 
+
+    </script>
+
+ 
+
+</asp:Content>
+
+ 
+
+<asp:Content ID="Content2" 
+
+             ContentPlaceHolderID="MainContent"
+
+
+             runat="server">
+
+ 
+
+    <%--<h1>ERC Search</h1>
+
+   
+<br /><br />--%>
+
+ 
+
+    <asp:Panel ID="pnlCriteria"
+
+
+              
+runat="server"
+
+
+              
+CssClass="Panel"
+
+
+              
+GroupingText="Search
+Criteria">
+
+    <table cellpadding="10"
+
+
+              
+cellspacing="1"
+
+
+              
+width="99%">
+
+              
+
+
+    <tr>
+
+      <td align="right"
+
+
+          nowrap="nowrap"
+
+
+          width="45%">  
+
+                   
+
+
+           
+Search By:
+
+      </td>
+
+       <td width="55%">
+
+
+            <asp:DropDownList ID="ddlSearchBy"
+
+
+                              runat="server"
+
+                              AutoPostBack="True"
+
+
+                              OnSelectedIndexChanged="ddlSearchBy_SelectedIndexChanged">
+
+            <asp:ListItem Selected="True"
+Text="-- Select
+--" Value="0"
+/>
+
+            <asp:ListItem Text="CA ID"
+Value="1"
+/>
+
+            <asp:ListItem Text="Employee ID"
+Value="2"
+/>
+
+            <asp:ListItem Text="TM Name"
+Value="3"
+/>
+
+            <asp:ListItem Text="Manager Name"
+Value="4"
+/>
+
+           </asp:DropDownList> 
+
+       </td>
+
+    </tr>
+
+ 
+
+    <tr>
+
+        <td align="center"
+
+
+            colspan="2" 
+
+            nowrap="nowrap">
+
+            <asp:MultiView ID="mvSearchBy"
+
+
+                           runat="server"
+
+
+                           ActiveViewIndex="0">
+
+ 
+
+       <asp:View ID="vSelect"
+runat="server">
+
+       </asp:View>
+
+ 
+
+       <asp:View ID="vCAId" 
+
+                
+runat="server">
+
+                   
+CA ID:
+
+                   
+&nbsp;&nbsp;         
+
+            <asp:TextBox ID="txtCAId"
+
+
+                         runat="server"
+
+
+                         ClientIDMode="Static"
+/>
+
+            <asp:RequiredFieldValidator
+ID="rfvCAId"
+
+
+                                    runat="server"
+
+
+                                    ControlToValidate="txtCAId"
+
+
+                                    Display="Dynamic"
+
+
+                                    ErrorMessage="Please
+enter CA Id" 
+
+                                    ForeColor="Red"
+
+
+                                    SetFocusOnError="True"
+
+
+                                    Text="*" />                           
+
+ 
+
+        </asp:View>
+
+ 
+
+        <asp:View ID="vEmplId"
+
+
+                 
+runat="server">
+
+                    
+Employee ID:
+
+                   
+&nbsp;&nbsp;               
+
+           <asp:TextBox ID="txtEmplId"
+
+
+                        runat="server" 
+
+                        ClientIDMode="Static" 
+
+                        MaxLength="11" />
+
+           <asp:RequiredFieldValidator
+ID="rfvEmplId"
+
+
+                                    runat="server"
+
+
+                                    ControlToValidate="txtEmplId"
+
+
+                                    Display="Dynamic"
+
+
+                                    ErrorMessage="Please
+enter Employee Id" 
+
+                                    ForeColor="Red"
+
+
+                                    SetFocusOnError="True"
+
+
+                                    Text="*" />                                          
+
+        </asp:View>
+
+ 
+
+        <asp:View ID="vTMName"
+
+
+                 
+runat="server">                  
+
+           
+Last Name:
+
+            &nbsp;&nbsp;
+
+            <asp:TextBox ID="txtTMLastName"
+
+
+                         runat="server"
+
+
+                         Width="200px"
+/>
+
+               
+<%--<asp:RequiredFieldValidator
+ID="rfvTMLastName" 
+
+                                           
+runat="server" 
+
+                                            ControlToValidate="txtTMLastName"
+
+
+                                           
+Display="Dynamic" 
+
+                                           
+ErrorMessage="Enter Last Name" 
+
+                                           
+ForeColor="Red" 
+
+                                            SetFocusOnError="true"
+
+
+                                           
+Text="*" />--%>
+
+               
+<asp:RegularExpressionValidator
+ID="revTMLastName"
+
+
+                                               
+runat="server"
+
+
+                 
+                              ControlToValidate="txtTMLastName"
+
+
+                                               
+Display="Dynamic"
+
+
+                                               
+ErrorMessage="You
+must enter atleast the first two letters in the last name" 
+
+                                               
+ForeColor="Red"
+
+
+                                               
+SetFocusOnError="true"
+
+
+                                               
+Text="*"
+
+
+                                               
+ValidationExpression=".{2}.*" />
+
+                 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+                 
+First Name:
+
+                 
+&nbsp;&nbsp;
+
+                 
+<asp:TextBox ID="txtTMFirstName"
+
+
+                               runat="server"
+
+
+                               Width="200px"
+/>                              
+
+          </asp:View>
+
+ 
+
+ 
+
+          <asp:View ID="VMgrName"
+
+
+                 
+runat="server">                  
+
+                 
+Last Name:
+
+                 
+&nbsp;&nbsp;
+
+                <asp:TextBox ID="txtMgrLastname" 
+
+                             runat="server"
+
+
+                             Width="200px"
+/>
+
+               
+<asp:RequiredFieldValidator
+ID="rfvMgrLastName"
+
+
+                                            runat="server"
+
+
+                                            ControlToValidate="txtMgrLastname"
+
+
+                                            Display="Dynamic"
+
+
+                                            ErrorMessage="Enter Last
+Name" 
+
+                                            ForeColor="Red" 
+
+                                            SetFocusOnError="true"
+
+
+                                            Text="*" />
+
+               
+<asp:RegularExpressionValidator
+ID="revMgrLastName"
+
+
+                                               
+runat="server"
+
+
+                                               
+ControlToValidate="txtMgrLastname"
+
+
+                                               
+Display="Dynamic"
+
+
+                                                ErrorMessage="You must enter atleast the first two letters in the
+last name" 
+
+                                               
+ForeColor="Red"
+
+
+                                               
+SetFocusOnError="true"
+
+
+                                                Text="*" 
+
+                                               
+ValidationExpression=".{2}.*" />
+
+                 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+                 
+First Name:
+
+                 
+&nbsp;&nbsp;
+
+                 
+<asp:TextBox ID="txtMgrFirstName"
+
+
+                               runat="server"
+
+
+                               Width="200px"
+/>                               
+
+           </asp:View>
+
+ 
+
+       </asp:MultiView>
+
+            <br />
+
+         </td>
+
+     </tr>
+
+             
+
+
+      <tr>
+
+          <td align="center"
+
+             
+colspan="2"
+
+
+             
+nowrap="nowrap">
+
+             
+<asp:Button ID="btnSearch"
+
+
+                          runat="server"
+
+
+                          onclick="btnSearch_Click"
+
+
+                          Text="    Search   
+" />
+
+             
+<asp:ValidationSummary ID="ValidationSummary1"
+
+
+                                     runat="server"
+
+
+                                     ShowMessageBox="true"
+
+
+                                     ShowSummary="false"
+
+
+                                     HeaderText="Please enter
+one of the following:" />
+
+              
+&nbsp; &nbsp;
+&nbsp; &nbsp;
+&nbsp;
+
+              
+<asp:Button ID="btnCancel"
+
+
+                           runat="server"
+
+
+                           CausesValidation="false"
+
+
+                           onclick="btnCancel_Click"
+
+
+                           Text="    Cancel   
+" />
+
+            </td>
+
+        </tr>     
+
+ </table>
+
+</asp:Panel>
+
+<br />
+
+ 
+
+<asp:Panel ID="pnlResults" 
+
+           runat="server"
+
+
+           CssClass="Panel" 
+
+           GroupingText="Search
+Results">
+
+        <asp:SqlDataSource ID="sdsResults"
+
+
+                           runat="server"
+
+                           CancelSelectOnNullParameter="False"
+
+                           ConnectionString="<%$ ConnectionStrings:CAW %>" 
+
+                           OnSelected="sdsResults_Selected"
+
+                           SelectCommand="Get_Search_Results"
+
+                           SelectCommandType="StoredProcedure">
+
+         <SelectParameters>
+
+            <asp:ControlParameter ControlID="txtCAId"
+
+                                  DbType="String"
+
+                                  Name="CAId"
+
+                                  PropertyName="Text"
+/>
+
+            <asp:ControlParameter ControlID="txtEmplId"
+
+                                  DbType="String"
+
+                                  Name="EmplId"
+
+                                  PropertyName="Text"
+/>
+
+            <asp:ControlParameter ControlID="txtTMFirstName"
+
+                                  Name="TM_FirstName"
+
+
+                                  PropertyName="Text"
+Type="String"
+/>
+
+            <asp:ControlParameter ControlID="txtTMLastName"
+
+                                  Name="TM_LastName"
+
+
+               
+                  PropertyName="Text"
+Type="String"
+/>
+
+            <asp:ControlParameter ControlID="txtMgrFirstName"
+
+                                  Name="Mgr_FirstName"
+
+
+                                  PropertyName="Text"
+Type="String"
+/>
+
+            <asp:ControlParameter ControlID="txtMgrLastname"
+
+                                  Name="Mgr_LastName"
+
+
+                                  PropertyName="Text"
+Type="String"
+/>        
+
+
+         </SelectParameters>
+
+       </asp:SqlDataSource>
+
+ 
+
+       <asp:GridView ID="gvResults"
+
+
+                        runat="server" 
+
+                        AllowPaging="True" 
+
+                        AllowSorting="True" 
+
+                        AutoGenerateColumns="False"
+
+                        CellPadding="4" 
+
+                        ClientIDMode="Static"
+
+                        DataKeyNames="EmplId"
+
+                        DataSourceID="sdsResults"
+
+                        EmptyDataText="No Data Found"
+
+
+                        OnRowDataBound="gvResults_RowDataBound"
+
+
+                        OnSelectedIndexChanged="gvResults_SelectedIndexChanged"
+
+                        PagerSettings-Mode="NumericFirstLast"
+
+                        PageSize="20"
+
+                        ShowHeaderWhenEmpty="True">
+
+ 
+
+            <%--     GridView
+Columns     --%>
+
+            <Columns>
+
+               
+
+
+               
+<%--     Employee
+Id     --%>
+
+               
+<asp:BoundField DataField="EmplId"
+
+                                HeaderText="Employee
+ID" 
+
+                                HeaderStyle-Width="100px"
+
+
+                                ItemStyle-Wrap="False"
+
+
+                                ReadOnly="True"
+
+
+                                SortExpression="EmplId"
+/>
+
+ 
+
+               
+<%--     Name     --%>
+
+               
+<asp:TemplateField HeaderText="Name"
+SortExpression="TM_LastName">
+
+
+                    
+<ItemTemplate> 
+
+                        <%#Eval("TM_FirstName") + " " + Eval("TM_LastName")%>
+
+                   
+</ItemTemplate> 
+
+                
+</asp:TemplateField> 
+
+ 
+
+               
+<%--<asp:BoundField DataField="Name"
+
+                               
+HeaderText="Name" 
+
+                               
+HeaderStyle-Width="150px" 
+
+                               
+ItemStyle-Wrap="False" 
+
+                                ReadOnly="True"
+
+
+                               
+SortExpression="Name" />--%>
+
+ 
+
+               
+<%--     Template
+Type     --%>
+
+               
+<asp:BoundField DataField="TemplateType"
+
+                                HeaderText="Template
+Type" 
+
+                
+               HeaderStyle-Width="150px"
+
+
+                                ItemStyle-Wrap="False"
+
+
+                                ReadOnly="True"
+
+
+                                SortExpression="TemplateType"
+/>
+
+ 
+
+               
+<%--     As of Date
+(Date the CA was originally started/ opened)    
+--%>
+
+               
+<asp:BoundField DataField="CA_StartDt"
+
+                                HeaderText="As Of
+Date" 
+
+                                HeaderStyle-Width="150px"
+
+
+                                ItemStyle-Wrap="False" 
+
+                                ReadOnly="True"
+
+
+                                SortExpression="CA_StartDt"
+/>
+
+ 
+
+               
+<%--    
+Acknowledgement Due Date (if applicable based on status)     --%>
+
+               
+<asp:BoundField DataField="Ack_DueDt"
+
+                                HeaderText="Acknowledgement
+Due Date" 
+
+                                HeaderStyle-Width="150px"
+
+
+                                ItemStyle-Wrap="False"
+
+
+               
+                ReadOnly="True"
+
+
+                                SortExpression="Ack_DueDt"
+/>
+
+ 
+
+               
+<%--    
+Status     --%>
+
+               
+<asp:BoundField DataField="Status"
+
+                                HeaderText="Status"
+
+
+                                HeaderStyle-Width="150px"
+
+
+                                ItemStyle-Wrap="False"
+
+
+                                ReadOnly="True"
+
+
+                                SortExpression="Status"
+/>
+
+ 
+
+               
+<%--     Action     --%>
+
+               
+<asp:BoundField DataField="Action"
+
+                                HeaderText="Action"
+
+
+                                HeaderStyle-Width="150px"
+
+
+                                ItemStyle-Wrap="False"
+
+
+                                ReadOnly="True" 
+
+                                SortExpression="Action"
+/>                               
+
+ 
+
+            </Columns>
+
+ 
+
+            <%--     GridView
+Styles     --%>
+
+            <AlternatingRowStyle
+CssClass="gvAlternatingRow"
+/>                    
+
+            <EditRowStyle CssClass="gvEditRow"
+/>
+
+            <FooterStyle CssClass="gvFooter"
+/>
+
+            <HeaderStyle CssClass="gvHeader"
+/>
+
+            <PagerStyle CssClass="gvPager"
+/>
+
+ 
+
+       </asp:GridView>
+
+ 
+
+</asp:Panel>
+
+</asp:Content>
+
+    
+
+CS
+
+
+using System;
+
+using System.Collections.Generic;
+
+using System.Linq;
+
+using System.Web;
+
+using System.Web.UI;
+
+using System.Web.UI.WebControls;
+
+using System.Data;
+
+ 
+
+//------------------------------------------------------------------------------
+
+//                                Search.aspx.cs
+
+//
+
+//     
+This class is the code behind for the ERC Search screen functionality
+
+// 
+
+//------------------------------------------------------------------------------
+
+//                                           
+
+//                                                                            
+
+
+//   
+Date     By                 Description                                
+
+// 
+--------  ------- 
+---------------------------------------------------------
+
+// 
+2-28-17   Vandana  Initial creation of program                               
+
+// 
+
+//------------------------------------------------------------------------------
+
+ 
+
+namespace EPF.CAW
+
+{
+
+    public partial class Search :
+System.Web.UI.Page
+
+    {
+
+       
+#region Member
+Variables
+
+ 
+
+        // Module Level Variables
+
+        //HRSCLogsDA _HRSCLogsDA = null;
+
+ 
+
+       
+#endregion
+
+ 
+
+ 
+
+       
+#region Enums
+
+ 
+
+        public enum SearchTypeEnum
+
+        {
+
+           
+CAId,
+
+           
+EmplId,
+
+           
+Name
+
+        }
+
+ 
+
+       
+#endregion
+
+ 
+
+        
+
+        /// <summary>
+
+        /// Page Load   
+
+        /// </summary>
+
+        protected void
+Page_Load(object sender, EventArgs e)
+
+        {
+
+            
+
+           
+pnlResults.Visible = false;   //added
+
+ 
+
+            //Initialize the Logging Class
+
+            //_HRSCLogsDA = new HRSCLogsDA();
+
+ 
+
+            //Check if 1st time
+
+        //    if
+(!IsPostBack)
+
+        //    {
+
+        //        // Log the
+action
+
+        //       
+//_HRSCLogsDA.Insert("ERC Search Screen");
+
+ 
+
+        //        string
+searchType = string.Empty;
+
+        //        string
+screenName = string.Empty;
+
+ 
+
+        //        //Get the
+parameter passed to the screen
+
+        //        if
+(Request.QueryString.Count > 0)
+
+        //        {
+
+        //           
+searchType = Request.QueryString["searchType"];
+
+        //           
+Session["SearchType"] = searchType;
+
+        //        }
+
+ 
+
+        //        if
+(searchType == "ERCSearchRequest")
+
+        //        {
+
+        //           
+screenName = "ERC Search";
+
+        //           
+ddlSearchBy.Items.Add(new ListItem("Request ID",
+"2"));
+
+        //        }
+
+ 
+
+        //        //Display
+the Screen Name on the Master Page
+
+        //        Label
+lblScreenName = (Label)Master.FindControl("lblScreenName");
+
+ 
+
+        //        if (lblScreenName != null)
+
+        //        {
+
+        //           
+lblScreenName.Text = screenName;
+
+        //            Title =
+screenName;
+
+        //        }
+
+ 
+
+        //       
+//Initialize the Search Criteria
+
+        //       
+InitializeCriteria();
+
+        //    }
+
+        //    else
+
+        //    { 
+
+        //        //Display
+the Results
+
+        //       
+pnlResults.Visible = true;
+
+        //    }
+
+        }
+
+ 
+
+        
+
+        /// <summary>
+
+        /// Search Button click
+
+        /// </summary>
+
+        protected void
+btnSearch_Click(object sender, EventArgs e)
+
+        {
+
+           
+pnlResults.Visible = true;    //added
+
+            //  Log the Action
+
+            //_HRSCLogsDA.Insert("Processor Search Screen - Search
+button Clicked");
+
+        }
+
+ 
+
+ 
+
+        /// <summary>
+
+        /// Cancel Button click
+
+        /// </summary>
+
+        protected void
+btnCancel_Click(object sender, EventArgs e)
+
+        {
+
+            //  Log the Action
+
+            //_HRSCLogsDA.Insert("ERC Search Screen - Cancel
+button Clicked");
+
+ 
+
+            //Close the window and refresh the page
+
+            //ClientScript.RegisterStartupScript(Page.GetType(),
+"CloseWindow", "CloseWindow();", true);
+
+ 
+
+           
+txtCAId.Text = string.Empty;
+
+           
+txtEmplId.Text = string.Empty;
+
+            txtTMFirstName.Text = string.Empty;
+
+           
+txtTMLastName.Text = string.Empty;
+
+           
+txtMgrFirstName.Text = string.Empty;
+
+           
+txtMgrLastname.Text = string.Empty;
+
+           
+pnlResults.Visible = false;
+
+        }
+
+ 
+
+        protected void
+ddlSearchBy_SelectedIndexChanged(object sender,
+EventArgs e)
+
+        {
+
+           
+pnlResults.Visible = false;
+
+            //mvSearchBy.ActiveViewIndex =
+Int32.Parse(ddlSearchBy.SelectedValue);
+
+           
+mvSearchBy.ActiveViewIndex = ddlSearchBy.SelectedIndex;
+
+            //Initialize the Search Criteria
+
+            //InitializeCriteria();
+
+        }
+
+ 
+
+ 
+
+        /// <summary>
+
+        /// gvResults -
+OnRowDataBound   
+
+        /// </summary>
+
+        protected void
+gvResults_RowDataBound(object sender, GridViewRowEventArgs e)
+
+        {
+
+        //    try
+
+        //    {
+
+        //        // Process
+DataRow
+
+        //        if
+(e.Row.RowType == DataControlRowType.DataRow)
+
+        //        {
+
+        //            //
+Check if row is NOT in Edit mode
+
+        //            if
+(e.Row.RowState != DataControlRowState.Edit
+
+        //               
+&& e.Row.RowState != (DataControlRowState.Edit |
+DataControlRowState.Alternate))
+
+        //            {
+
+        //                //
+Change the Background Color of the row during Hoover
+
+        //               
+GridFormatting.GridViewStyle(e);
+
+ 
+
+        //                //
+Set OnClick event to go into Select Mode
+
+        //               
+e.Row.Attributes.Add("onClick", Page.ClientScript.GetPostBackClientHyperlink(gvResults,
+"Select$" + e.Row.RowIndex));
+
+        //            }
+
+        //        }
+
+        //    }
+
+ 
+
+        //    catch
+(InternalException err)
+
+        //    {
+
+        //        // Display
+a Messagebox
+
+        //        AlertMessage.Show(err.UserFriendlyMsg,
+this.Page);
+
+        //    }
+
+        //    catch
+(Exception err)
+
+        //    {
+
+        //        // Error
+
+        //        string
+errMsg = string.Format("{0} - gvResults Row Data Bound Error - {1}",
+
+        //                                     
+GetType().FullName,
+
+        //                                     
+err.Message);
+
+ 
+
+        //        // Log the
+Error 
+
+        //       
+//AppLogWrapper.LogError(errMsg);
+
+ 
+
+        //        // Save a
+User Friendly Error Message in Session Variable
+
+        //        errMsg =
+"There was a problem creating a row in the Results grid.  If the problem persists, please contact
+Technical Support.";
+
+ 
+
+        //        // Display
+a Messagebox
+
+        //       
+//AlertMessage.Show(errMsg, this.Page);
+
+        //    }
+
+        }
+
+ 
+
+ 
+
+        /// <summary>
+
+        /// gvResults -
+SelectedIndexChanged   
+
+        /// </summary>
+
+        protected void
+gvResults_SelectedIndexChanged(object sender, EventArgs e)
+
+        {
+
+            //try
+
+            //{
+
+            //    // Process
+Selected Row
+
+            //    if
+(gvResults.SelectedValue != null)
+
+            //    {
+
+            //        string
+tmEmplId = gvResults.SelectedValue.ToString();
+
+ 
+
+            //        //  Log the Action
+
+            //        string logMsg = string.Format("ERC
+Search Screen - Row Selected - EmplId: {0}",
+
+            //                                     
+tmEmplId);
+
+ 
+
+            //       
+//_HRSCLogsDA.Insert(logMsg);
+
+ 
+
+            //        if
+(Session["SearchType"] != null)
+
+            //        {
+
+            //            if
+(Session["SearchType"].ToString() == "ERCSearchRequest")
+
+            //            {
+
+            //               
+//Save Employee ID
+
+            //               
+Session["TMEmplId"] = tmEmplId;
+
+ 
+
+            //               
+//Get Team Member's Name
+
+            //               
+//Session["TMName"] = GetName(tmEmplId);
+
+ 
+
+            //            }
+
+            //        }
+
+            //    }
+
+            //}
+
+ 
+
+            ////        catch (InternalException
+err)
+
+            ////{
+
+            ////    // Display a
+Messagebox
+
+            ////   
+AlertMessage.Show(err.UserFriendlyMsg, this.Page);
+
+            ////}
+
+            //catch (Exception err)
+
+            //{
+
+            //    // Database
+Error
+
+            //    string errMsg =
+string.Format("{0} - gvResults Selected Index Changed Error - {1}",
+
+            //                                 
+GetType().FullName,
+
+            //                                  err.Message);
+
+            //    // Log the Error 
+
+            //   
+//AppLogWrapper.LogError(errMsg);
+
+ 
+
+            //    // Display a
+User Friendly Error Message 
+
+            //    errMsg =
+"There was a problem selecting a record on the Search screen.  If the problem persists, please contact
+Technical Support.";
+
+ 
+
+            //    // Display a
+Messagebox
+
+            //   
+//AlertMessage.Show(errMsg, this.Page);
+
+            //}
+
+        }
+
+ 
+
+ 
+
+        ///// <summary>
+
+        ///// Retrieves the Team Member's Name   
+
+        ///// </summary>
+
+        ///// <param name="emplId"></param>
+
+        //private string GetName(string emplId)
+
+        //{
+
+        //    string fullName
+= string.Empty;
+
+ 
+
+        //    // Check if
+valid Employee Id
+
+        //    FullRosterDA
+fullRosterDA = new FullRosterDA();
+
+        //    DataTable
+dtFullRoster = fullRosterDA.Get(emplId);
+
+ 
+
+        //    // Was Employee
+Found?
+
+        //    if
+(dtFullRoster.Rows.Count > 0)
+
+        //    {
+
+        //        // Process
+1st row in datatable
+
+        //        DataRow dr
+= dtFullRoster.Rows[0];
+
+ 
+
+        //        // Format
+the Name to Upper and Lower Case letters
+
+        //        //fullName
+= Formatting.FormatName(dr["NAME"].ToString());
+
+        //        fullName =
+dr["NAME"].ToString();
+
+        //    }
+
+ 
+
+        //    return fullName;
+
+        //}
+
+ 
+
+ 
+
+        /// <summary>
+
+        /// Initialize Search
+Criteria   
+
+        /// </summary>
+
+        private void
+InitializeCriteria()
+
+        {
+
+            // Initialize the Search Criteria
+
+            //if (ddlSearchBy.SelectedIndex == 0)
+
+            //{
+
+            //    // Set to
+Request Id View
+
+            //   
+mvSearchBy.ActiveViewIndex = 0;
+
+            //}
+
+            //else
+
+            //{
+
+            //    // Set to
+Selected View
+
+            //   
+mvSearchBy.ActiveViewIndex = ddlSearchBy.SelectedIndex;
+
+            //}
+
+ 
+
+            //txtCAId.Text = string.Empty;
+
+            //txtEmplId.Text = string.Empty;
+
+            //txtTMFirstName.Text = string.Empty;
+
+            //txtTMLastName.Text = string.Empty;
+
+            //txtMgrFirstName.Text = string.Empty;
+
+            //txtMgrLastname.Text = string.Empty;
+
+            
+
+ 
+
+            //// Place the Cursor on the corresponding field
+
+            //switch (ddlSearchBy.SelectedIndex)
+
+            //{
+
+            //    case (int)SearchTypeEnum.CAId:
+
+            //       
+txtCAId.Focus();
+
+            //        break;
+
+ 
+
+            //    case
+(int)SearchTypeEnum.EmplId:
+
+            //       
+txtEmplId.Focus();
+
+            //        break;
+
+ 
+
+            //    case
+(int)SearchTypeEnum.Name:
+
+            //       
+txtTMLastName.Focus();
+
+            //        break;            
+
+ 
+
+            //    default:
+
+            //        break;
+
+            //}
+
+ 
+
+            // Hide the Results
+
+           
+pnlResults.Visible = false;
+
+        }
+
+ 
+
+ 
+
+        /// <summary>
+
+        /// sdsResults -
+Selected   
+
+        /// </summary>
+
+        protected void
+sdsResults_Selected(object sender, SqlDataSourceStatusEventArgs e)
+
+        {
+
+            //// Check for an exception
+
+            //if (e.Exception != null
+
+            //    &&
+e.Exception.InnerException != null)
+
+            //{
+
+            //    Exception inner
+= e.Exception.InnerException;
+
+            //    string errMsg =
+string.Empty;
+
+ 
+
+            //    //// Check for
+a previously handled exception
+
+            //    //if (inner is InternalException)
+
+            //    //{
+
+            //    //    // Already Logged
+
+            //    //}
+
+            //    //else
+
+            //    //{
+
+            //    //    // Error
+
+            //    //    errMsg = string.Format("{0} -
+sdsResults Selected Error - {1}",
+
+            //    //                           GetType().FullName,
+
+            //    //                           inner.Message);
+
+ 
+
+            //    //    // Log the Error 
+
+            //    //    AppLogWrapper.LogError(errMsg);
+
+            //    //}
+
+ 
+
+            //    // Indicate
+that the exception has been handled
+
+            //   
+e.ExceptionHandled = true;
+
+            //}
+
+        }
+
+ 
+
+ 
+
+    }
+
+}
