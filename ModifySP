@@ -1,0 +1,49 @@
+ALTER PROCEDURE [dbo].[Get_Search_Results] 
+-- Add the parameters for the stored procedure here
+	@CAId varchar(50) = '',
+	@EmplId varchar(50) = '',
+	@TM_FirstName varchar(50) = '',
+	@TM_LastName varchar(50) = '',
+	@Mgr_FirstName varchar(50) = '',
+	@Mgr_LastName varchar(50) = ''
+
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	Select EmplId, TM_FirstName, TM_LastName, TemplateType, CA_StartDt, Ack_DueDt, Status, Action
+	FROM
+	TM_CA_Details
+	WHERE
+		CAID = Case  
+				When @CAID = '' Then CAID 
+				When @CAID IS NULL Then CAID 
+				Else @CAID 
+			   END
+		AND
+		EmplId = Case @EmplId When '' Then EmplId Else @EmplId END
+		AND
+		TM_FirstName = Case @TM_FirstName When '' Then TM_FirstName Else @TM_FirstName END
+		AND
+		TM_LastName = Case @TM_LastName When '' Then TM_LastName Else @TM_LastName END
+		AND
+		Mgr_FirstName = Case @Mgr_FirstName When '' Then Mgr_FirstName Else @Mgr_FirstName END
+		AND
+		Mgr_LastName = Case @Mgr_LastName When '' Then Mgr_LastName Else @Mgr_LastName END
+
+	--(CAId = @CAId OR @CAId is null OR @CAId='') 
+	--AND
+	--(EmplId = @EmplId OR @EmplId is null or @EmplId='') 
+	--AND
+	--(TM_FirstName = @TM_FirstName OR @TM_FirstName is null OR @TM_FirstName='') 
+	--AND
+	--(TM_LastName = @TM_LastName OR @TM_LastName is null OR @TM_LastName='') 
+	--AND
+	--(Mgr_FirstName = @Mgr_FirstName OR @Mgr_FirstName is null OR @Mgr_FirstName='') 
+	--AND
+	--(Mgr_LastName = @Mgr_LastName OR @Mgr_LastName is null OR @Mgr_LastName='')
+
+END
