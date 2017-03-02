@@ -1,0 +1,218 @@
+using System;
+using System.Data;
+using Microsoft.Practices.EnterpriseLibrary.Data;
+using EPF.Utilities;
+using Oracle.DataAccess.Client;
+
+//------------------------------------------------------------------------------
+//                                    HRFullRosterDA.cs
+//
+//      This class handles the HR Full Roster Data Access
+// 
+//------------------------------------------------------------------------------
+// 
+//                          Modification Control Log                           
+//                                                                             
+//    Date     By                 Description                                
+//  --------  ---  -------------------------------------------------------------
+//  07-31-12   JV   Initial creation of program                               
+// 
+//------------------------------------------------------------------------------
+
+namespace EPF.DataAccess
+{
+    public class HRFullRosterDA
+    {
+
+        #region Member Variables
+
+        // Variables
+        Database _db = null;
+        OracleCommand _cmd = null;
+        string _sp = string.Empty;
+
+        #endregion
+
+　
+        #region Constructors
+
+        public HRFullRosterDA()
+        {
+            // Initialize Variables
+            ErrMsg = string.Empty;
+
+            try
+            {
+                // Connect to the Database
+                _db = DatabaseFactory.CreateDatabase("EPF");
+            }
+            catch (Exception err)
+            {
+                // Database Error
+                ErrMsg = string.Format("{0} - Connecting to Database Error - {1}",
+                                       GetType().FullName,
+                                       err.Message);
+
+                // Save the Error
+                CommonDA.SaveError(ErrMsg, err);
+            }
+        }
+
+        #endregion
+
+　
+        #region Enums
+
+        #endregion
+
+　
+        #region Properties
+
+        public string ErrMsg { get; set; }
+
+        #endregion
+
+　
+        #region Methods
+        
+        /// <summary>
+        /// Gets the direct reports for a manager
+        /// </summary>
+        /// <param name="mgrId">Manager Id</param>
+        /// <returns>Mgr Staff DataTable</returns>
+        public DataTable GetMgrStaff(string mgrId)
+        {
+            _sp = "VSTAR_HR_L.PKG_HR_FULL_ROSTER.GET_MANAGER_STAFF";
+            DataTable dtMgrStaff = new DataTable();
+
+            try
+            {
+                // Create the Database Command
+                _cmd = (OracleCommand)_db.GetStoredProcCommand(_sp);
+
+                // Create the Output Cursor Parameter
+                OracleParameter prmCursor = new OracleParameter("result_cursor", OracleDbType.RefCursor, ParameterDirection.ReturnValue);
+                _cmd.Parameters.Add(prmCursor);
+
+                // Create the Input Employee Id Parameter
+                OracleParameter prmMgrId = new OracleParameter("p_MgrId", OracleDbType.Varchar2, ParameterDirection.Input);
+                prmMgrId.Value = mgrId;
+                _cmd.Parameters.Add(prmMgrId);
+
+                dtMgrStaff = CommonDA.ExecuteFunction(_db, _cmd, _sp);
+            }
+            catch (InternalException err)
+            {
+                // Re-Throw the Internal Exception
+                throw;
+            }
+            catch (Exception err)
+            {
+                // Database Error
+                ErrMsg = string.Format("{0} - Get Mgr Staff by Manager Id Error - {1}",
+                                       GetType().FullName,
+                                       err.Message);
+
+                // Save the Error
+                CommonDA.SaveError(ErrMsg, err);
+            }
+
+            return dtMgrStaff;
+        }
+
+　
+        /// <summary>
+        /// Gets the Team Member's Name
+        /// </summary>
+        /// <param name="emplId">EmplId</param>
+        /// <returns>Name DataTable</returns>
+        public DataTable GetName(string emplId)
+        {
+            _sp = "VSTAR_HR_L.PKG_HR_FULL_ROSTER.GET_NAME";
+            DataTable dtName = new DataTable();
+
+            try
+            {
+                // Create the Database Command
+                _cmd = (OracleCommand)_db.GetStoredProcCommand(_sp);
+
+                // Create the Output Cursor Parameter
+                OracleParameter prmCursor = new OracleParameter("result_cursor", OracleDbType.RefCursor, ParameterDirection.ReturnValue);
+                _cmd.Parameters.Add(prmCursor);
+
+                // Create the Input Employee Id Parameter
+                OracleParameter prmEmplId = new OracleParameter("p_EmplId", OracleDbType.Varchar2, ParameterDirection.Input);
+                prmEmplId.Value = emplId;
+                _cmd.Parameters.Add(prmEmplId);
+
+                dtName = CommonDA.ExecuteFunction(_db, _cmd, _sp);
+            }
+            catch (InternalException err)
+            {
+                // Re-Throw the Internal Exception
+                throw;
+            }
+            catch (Exception err)
+            {
+                // Database Error
+                ErrMsg = string.Format("{0} - Get Name Error - {1}",
+                                       GetType().FullName,
+                                       err.Message);
+
+                // Save the Error
+                CommonDA.SaveError(ErrMsg, err);
+            }
+
+            return dtName;
+        }
+
+　
+        /// <summary>
+        /// Gets the Team Member Information
+        /// </summary>
+        /// <param name="tmId">Team Member Id</param>
+        /// <returns>Team Mbr Info DataTable</returns>
+        public DataTable GetTeamMbrInfo(string tmId)
+        {
+            _sp = "VSTAR_HR_L.PKG_HR_FULL_ROSTER.GET_TEAM_MEMBER";
+            DataTable dtTMInfo = new DataTable();
+
+            try
+            {
+                // Create the Database Command
+                _cmd = (OracleCommand)_db.GetStoredProcCommand(_sp);
+
+                // Create the Output Cursor Parameter
+                OracleParameter prmCursor = new OracleParameter("result_cursor", OracleDbType.RefCursor, ParameterDirection.ReturnValue);
+                _cmd.Parameters.Add(prmCursor);
+
+                // Create the Input Employee Id Parameter
+                OracleParameter prmTMId = new OracleParameter("p_TmId", OracleDbType.Varchar2, ParameterDirection.Input);
+                prmTMId.Value = tmId;
+                _cmd.Parameters.Add(prmTMId);
+
+                dtTMInfo = CommonDA.ExecuteFunction(_db, _cmd, _sp);
+            }
+            catch (InternalException err)
+            {
+                // Re-Throw the Internal Exception
+                throw;
+            }
+            catch (Exception err)
+            {
+                // Database Error
+                ErrMsg = string.Format("{0} - Get Team Member Info by Team Member Id Error - {1}",
+                                       GetType().FullName,
+                                       err.Message);
+
+                // Save the Error
+                CommonDA.SaveError(ErrMsg, err);
+            }
+
+            return dtTMInfo;
+        }
+
+        #endregion
+
+    }
+}
