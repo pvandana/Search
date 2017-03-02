@@ -1,0 +1,362 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Data;
+using EPF.Utilities;
+using EPF.DataAccess;
+
+//------------------------------------------------------------------------------
+//                                Search.aspx.cs
+//
+//      This class is the code behind for the ERC Search screen functionality
+// 
+//------------------------------------------------------------------------------
+//                                           
+//                                                                             
+//    Date     By                 Description                                
+//  --------  -------  ---------------------------------------------------------
+//  2-28-17   Vandana  Initial creation of program                               
+// 
+//------------------------------------------------------------------------------
+
+namespace EPF.CAW
+{
+    public partial class Search : System.Web.UI.Page
+    {
+        #region Member Variables
+
+        // Module Level Variables
+        //HRSCLogsDA _HRSCLogsDA = null;
+
+        #endregion
+
+　
+        #region Enums
+
+        public enum SearchTypeEnum
+        {
+            CAId,
+            EmplId,
+            Name
+        }
+
+        #endregion
+
+        
+        /// <summary>
+        /// Page Load   
+        /// </summary>
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            
+            //pnlResults.Visible = false;   //added
+
+            //Initialize the Logging Class
+            //_HRSCLogsDA = new HRSCLogsDA();
+
+            //Check if 1st time
+            if (!IsPostBack)
+            {
+        //        // Log the action
+        //        //_HRSCLogsDA.Insert("ERC Search Screen");
+
+            string searchType = string.Empty;
+            string screenName = string.Empty;
+
+                //Get the parameter passed to the screen
+                if (Request.QueryString.Count > 0)
+                {
+                    searchType = Request.QueryString["searchType"];
+                    Session["SearchType"] = searchType;
+                }
+
+                if (searchType == "ERCSearchRequest")
+                {
+                    screenName = "ERC Search";
+                    //ddlSearchBy.Items.Add(new ListItem("Request ID", "2"));
+                }
+
+                //Display the Screen Name on the Master Page
+                Label lblScreenName = (Label)Master.FindControl("lblScreenName");
+
+                if (lblScreenName != null)
+                {
+                    lblScreenName.Text = screenName;
+                    Title = screenName;
+                }
+
+                //Initialize the Search Criteria
+                InitializeCriteria();
+            }
+            else
+            {
+                //Display the Results
+                pnlResults.Visible = true;
+            }
+        }
+
+        
+        /// <summary>
+        /// Search Button click
+        /// </summary>
+        protected void btnSearch_Click(object sender, EventArgs e)
+        {
+            pnlResults.Visible = true;    //added
+            //  Log the Action
+            //_HRSCLogsDA.Insert("Processor Search Screen - Search button Clicked");
+        }
+
+　
+        /// <summary>
+        /// Cancel Button click
+        /// </summary>
+        protected void btnCancel_Click(object sender, EventArgs e)
+        {
+            //  Log the Action
+            //_HRSCLogsDA.Insert("ERC Search Screen - Cancel button Clicked");
+
+            //Close the window and refresh the page
+            //ClientScript.RegisterStartupScript(Page.GetType(), "CloseWindow", "CloseWindow();", true);
+
+            mvSearchBy.Visible = false;
+            btnSearch.Visible = false;
+            btnCancel.Visible = false;
+            pnlResults.Visible = false;
+
+            //txtCAId.Text = string.Empty;
+            //txtEmplId.Text = string.Empty;
+            //txtTMFirstName.Text = string.Empty;
+            //txtTMLastName.Text = string.Empty;
+            //txtMgrFirstName.Text = string.Empty;
+            //txtMgrLastname.Text = string.Empty;
+            //pnlResults.Visible = false;
+        }
+
+        protected void ddlSearchBy_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            //pnlResults.Visible = false;
+            //mvSearchBy.ActiveViewIndex = Int32.Parse(ddlSearchBy.SelectedValue);
+            //mvSearchBy.ActiveViewIndex = ddlSearchBy.SelectedIndex;
+            //Initialize the Search Criteria
+            InitializeCriteria();
+        }
+
+　
+        /// <summary>
+        /// gvResults - OnRowDataBound   
+        /// </summary>
+        protected void gvResults_RowDataBound(object sender, GridViewRowEventArgs e)
+        {
+            try
+            {
+                // Process DataRow
+                if (e.Row.RowType == DataControlRowType.DataRow)
+                {
+                    // Check if row is NOT in Edit mode
+                    if (e.Row.RowState != DataControlRowState.Edit
+                        && e.Row.RowState != (DataControlRowState.Edit | DataControlRowState.Alternate))
+                    {
+                        // Change the Background Color of the row during Hoover
+                        GridFormatting.GridViewStyle(e);
+
+                        // Set OnClick event to go into Select Mode
+                        e.Row.Attributes.Add("onClick", Page.ClientScript.GetPostBackClientHyperlink(gvResults, "Select$" + e.Row.RowIndex));
+                    }
+                }
+            }
+
+            catch (InternalException err)
+            {
+                // Display a Messagebox
+                AlertMessage.Show(err.UserFriendlyMsg, this.Page);
+            }
+            catch (Exception err)
+            {
+                // Error
+                string errMsg = string.Format("{0} - gvResults Row Data Bound Error - {1}",
+                                              GetType().FullName,
+                                              err.Message);
+
+                // Log the Error 
+                //AppLogWrapper.LogError(errMsg);
+
+                // Save a User Friendly Error Message in Session Variable
+                errMsg = "There was a problem creating a row in the Results grid.  If the problem persists, please contact Technical Support.";
+
+                // Display a Messagebox
+                AlertMessage.Show(errMsg, this.Page);
+            }
+        }
+
+　
+        /// <summary>
+        /// gvResults - SelectedIndexChanged   
+        /// </summary>
+        protected void gvResults_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                // Process Selected Row
+                if (gvResults.SelectedValue != null)
+                {
+                    string tmEmplId = gvResults.SelectedValue.ToString();
+
+                    //  Log the Action
+                    string logMsg = string.Format("ERC Search Screen - Row Selected - EmplId: {0}",
+                                                  tmEmplId);
+
+                    //_HRSCLogsDA.Insert(logMsg);
+
+                    if (Session["SearchType"] != null)
+                    {
+                        if (Session["SearchType"].ToString() == "ERCSearchRequest")
+                        {
+                            //Save Employee ID
+                            Session["TMEmplId"] = tmEmplId;
+
+                            //Get Team Member's Name
+                            //Session["TMName"] = GetName(tmEmplId);
+
+                        }
+                    }
+                }
+            }
+
+            catch (InternalException err)
+            {
+                // Display a Messagebox
+                AlertMessage.Show(err.UserFriendlyMsg, this.Page);
+            }
+            catch (Exception err)
+            {
+                // Database Error
+                string errMsg = string.Format("{0} - gvResults Selected Index Changed Error - {1}",
+                                              GetType().FullName,
+                                              err.Message);
+                // Log the Error 
+                //AppLogWrapper.LogError(errMsg);
+
+                // Display a User Friendly Error Message 
+                errMsg = "There was a problem selecting a record on the Search screen.  If the problem persists, please contact Technical Support.";
+
+                // Display a Messagebox
+                AlertMessage.Show(errMsg, this.Page);
+            }
+        }
+
+　
+        ///// <summary>
+        ///// Retrieves the Team Member's Name   
+        ///// </summary>
+        ///// <param name="emplId"></param>
+        //private string GetName(string emplId)
+        //{
+        //    string fullName = string.Empty;
+
+        //    // Check if valid Employee Id
+        //    FullRosterDA fullRosterDA = new FullRosterDA();
+        //    DataTable dtFullRoster = fullRosterDA.Get(emplId);
+
+        //    // Was Employee Found?
+        //    if (dtFullRoster.Rows.Count > 0)
+        //    {
+        //        // Process 1st row in datatable
+        //        DataRow dr = dtFullRoster.Rows[0];
+
+        //        // Format the Name to Upper and Lower Case letters
+        //        //fullName = Formatting.FormatName(dr["NAME"].ToString());
+        //        fullName = dr["NAME"].ToString();
+        //    }
+
+        //    return fullName;
+        //}
+
+　
+        /// <summary>
+        /// Initialize Search Criteria   
+        /// </summary>
+        private void InitializeCriteria()
+        {
+            // Initialize the Search Criteria
+            //if (ddlSearchBy.SelectedIndex == 0)
+            //{
+            //    // Set to Request Id View
+            //    mvSearchBy.ActiveViewIndex = 0;
+            //}
+            //else
+            //{
+            // Set to Selected View
+            mvSearchBy.ActiveViewIndex = ddlSearchBy.SelectedIndex;
+            //}
+
+            txtCAId.Text = string.Empty;
+            txtEmplId.Text = string.Empty;
+            txtTMFirstName.Text = string.Empty;
+            txtTMLastName.Text = string.Empty;
+            txtMgrFirstName.Text = string.Empty;
+            txtMgrLastname.Text = string.Empty;
+
+　
+            // Place the Cursor on the corresponding field
+            switch (ddlSearchBy.SelectedIndex)
+            {
+                case (int)SearchTypeEnum.CAId:
+                    txtCAId.Focus();
+                    break;
+
+                case (int)SearchTypeEnum.EmplId:
+                    txtEmplId.Focus();
+                    break;
+
+                case (int)SearchTypeEnum.Name:
+                    txtTMLastName.Focus();
+                    break;
+
+                default:
+                    break;
+            }
+
+            // Hide the Results
+            pnlResults.Visible = false;
+        }
+
+　
+        /// <summary>
+        /// sdsResults - Selected   
+        /// </summary>
+        protected void sdsResults_Selected(object sender, SqlDataSourceStatusEventArgs e)
+        {
+            // Check for an exception
+            if (e.Exception != null
+                && e.Exception.InnerException != null)
+            {
+                Exception inner = e.Exception.InnerException;
+                string errMsg = string.Empty;
+
+                // Check for a previously handled exception
+                if (inner is InternalException)
+                {
+                    // Already Logged
+                }
+                else
+                {
+                    // Error
+                    errMsg = string.Format("{0} - sdsResults Selected Error - {1}",
+                                           GetType().FullName,
+                                           inner.Message);
+
+                    // Log the Error 
+                    //AppLogWrapper.LogError(errMsg);
+                }
+
+                // Indicate that the exception has been handled
+                e.ExceptionHandled = true;
+            }
+        }
+
+　
+    }
+}
