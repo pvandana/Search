@@ -1,0 +1,43 @@
+USE [CAW]
+GO
+/****** Object:  StoredProcedure [dbo].[Get_Search_Results]    Script Date: 3/1/2017 8:05:26 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		Vandana Ponnada
+-- Create date: 2/28/2017
+-- Description:	To get the results based on CA ID, EmplId, TM name and Manager Name and display it in a grid
+-- =============================================
+ALTER PROCEDURE [dbo].[Get_Search_Results] 
+-- Add the parameters for the stored procedure here
+	@CAId varchar(50),
+	@EmplId varchar(50),
+	@TM_FirstName varchar(50),
+	@TM_LastName varchar(50),
+	@Mgr_FirstName varchar(50),
+	@Mgr_LastName varchar(50)
+
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	Select EmplId, TM_FirstName, TM_LastName, TemplateType, CA_StartDt, Ack_DueDt, Status, Action
+	FROM
+	TM_CA_Details
+	WHERE
+	(CAId = @CAId OR @CAId is null OR @CAId='') AND
+	(EmplId = @EmplId OR @EmplId is null or @EmplId='') AND
+	(TM_FirstName = @TM_FirstName OR @TM_FirstName is null OR @TM_FirstName='') AND
+	(TM_LastName = @TM_LastName OR @TM_LastName is null OR @TM_LastName='') AND
+	(Mgr_FirstName = @Mgr_FirstName OR @Mgr_FirstName is null OR @Mgr_FirstName='') AND
+	(Mgr_LastName = @Mgr_LastName OR @Mgr_LastName is null OR @Mgr_LastName='')
+
+END
+
+
+
